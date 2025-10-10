@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { ConnectionCard } from '@/components/ConnectionCard';
@@ -10,19 +10,31 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Facebook, MessageCircle, Bell, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Settings = () => {
-  const { user, updateUser, metaConnected, whatsappConnected, connectMeta, disconnectMeta, connectWhatsapp, disconnectWhatsapp } = useAuthStore();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState(user?.name || '');
+  const [name, setName] = useState(profile?.name || '');
   const [email, setEmail] = useState(user?.email || '');
 
-  const handleSaveProfile = () => {
-    updateUser({ name, email });
-    toast.success('Perfil atualizado com sucesso!');
+  const handleSaveProfile = async () => {
+    try {
+      if (!user) return;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name, email })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar perfil');
+    }
   };
 
   return (
@@ -58,8 +70,8 @@ const Settings = () => {
                   <CardContent className="space-y-6">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-20 h-20">
-                        <AvatarImage src={user?.avatar} alt={user?.name} />
-                        <AvatarFallback className="text-2xl">{user?.name?.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={profile?.avatar_url} alt={profile?.name} />
+                        <AvatarFallback className="text-2xl">{profile?.name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <Button variant="outline">Alterar foto</Button>
                     </div>
@@ -87,22 +99,19 @@ const Settings = () => {
 
               <TabsContent value="connections">
                 <div className="space-y-4">
-                  <ConnectionCard
-                    title="Meta Ads"
-                    description="Gerencie a conexão com suas contas de anúncios"
-                    icon={Facebook}
-                    connected={metaConnected}
-                    onConnect={() => navigate('/connect/meta')}
-                    onDisconnect={disconnectMeta}
-                  />
-                  <ConnectionCard
-                    title="WhatsApp"
-                    description="Gerencie a conexão com o WhatsApp"
-                    icon={MessageCircle}
-                    connected={whatsappConnected}
-                    onConnect={() => navigate('/connect/whatsapp')}
-                    onDisconnect={disconnectWhatsapp}
-                  />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Conexões</CardTitle>
+                      <CardDescription>
+                        Gerencie suas integrações com Meta Ads e WhatsApp
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        As conexões com Meta Ads e WhatsApp serão configuradas em breve.
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 

@@ -1,18 +1,20 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { MetricCard } from '@/components/MetricCard';
-import { ConnectionCard } from '@/components/ConnectionCard';
 import { InsightTimeline } from '@/components/InsightTimeline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { TrendingUp, DollarSign, Target, Zap, Facebook, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp, DollarSign, Target, Zap, Crown, AlertCircle } from 'lucide-react';
 import { mockMetrics, mockPerformanceData, mockTimeline } from '@/lib/mockData';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { metaConnected, whatsappConnected, connectMeta, disconnectMeta, connectWhatsapp, disconnectWhatsapp } = useAuthStore();
+  const { isSubscribed, subscriptionEnd } = useAuth();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -20,6 +22,17 @@ const Dashboard = () => {
       <div className="flex-1 flex flex-col">
         <Header />
         <main className="flex-1 p-6 space-y-6">
+          {/* Status da assinatura */}
+          {isSubscribed && subscriptionEnd && (
+            <Alert>
+              <Crown className="h-4 w-4" />
+              <AlertTitle>Plano Premium Ativo</AlertTitle>
+              <AlertDescription>
+                Sua assinatura está ativa até {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Métricas rápidas */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricCard
@@ -45,26 +58,6 @@ const Dashboard = () => {
               value={mockMetrics.insightsReceived}
               icon={Zap}
               trend={{ value: '+8 esta semana', positive: true }}
-            />
-          </div>
-
-          {/* Status de conexões */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <ConnectionCard
-              title="Meta Ads"
-              description="Conecte sua conta de anúncios do Facebook"
-              icon={Facebook}
-              connected={metaConnected}
-              onConnect={() => navigate('/connect/meta')}
-              onDisconnect={disconnectMeta}
-            />
-            <ConnectionCard
-              title="WhatsApp"
-              description="Receba insights diretamente no WhatsApp"
-              icon={MessageCircle}
-              connected={whatsappConnected}
-              onConnect={() => navigate('/connect/whatsapp')}
-              onDisconnect={disconnectWhatsapp}
             />
           </div>
 

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,8 +26,18 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { register: registerUser } = useAuthStore();
+  const { register: registerUser, isAuthenticated, initialize } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const {
     register,
@@ -41,10 +51,9 @@ const Register = () => {
     setIsLoading(true);
     try {
       await registerUser(data.name, data.email, data.password);
-      toast.success('Conta criada com sucesso!');
-      navigate('/onboarding');
-    } catch (error) {
-      toast.error('Erro ao criar conta. Tente novamente.');
+      toast.success('Conta criada com sucesso! Você já pode fazer login.');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
       setIsLoading(false);
     }

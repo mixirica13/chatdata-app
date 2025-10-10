@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,8 +21,18 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isOnboarded } = useAuthStore();
+  const { login, isAuthenticated, initialize } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const {
     register,
@@ -37,9 +47,8 @@ const Login = () => {
     try {
       await login(data.email, data.password);
       toast.success('Login realizado com sucesso!');
-      navigate(isOnboarded ? '/dashboard' : '/onboarding');
-    } catch (error) {
-      toast.error('Erro ao fazer login. Verifique suas credenciais.');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setIsLoading(false);
     }

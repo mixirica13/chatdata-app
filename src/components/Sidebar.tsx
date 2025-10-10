@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { Home, History, Settings, Zap } from 'lucide-react';
+import { Home, History, Settings, Zap, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Assinatura', href: '/subscription', icon: Crown },
   { name: 'Histórico', href: '/history', icon: History },
   { name: 'Configurações', href: '/settings', icon: Settings },
 ];
