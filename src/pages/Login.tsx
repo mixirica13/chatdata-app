@@ -48,61 +48,76 @@ const Login = () => {
       await login(data.email, data.password);
       toast.success('Login realizado com sucesso!');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      const errorMessage = error.message || 'Erro ao fazer login. Verifique suas credenciais.';
+
+      // If email not confirmed, show custom message with link
+      if (errorMessage.includes('confirme seu email')) {
+        toast.error(errorMessage, {
+          duration: 6000,
+          action: {
+            label: 'Reenviar',
+            onClick: () => navigate(`/confirm-email?email=${encodeURIComponent(data.email)}`),
+          },
+        });
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-black p-4">
+      <Card className="w-full max-w-md bg-card border-white/10">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary p-3 rounded-xl">
-              <Zap className="w-8 h-8 text-primary-foreground" />
+            <div className="bg-primary/20 p-3 rounded-xl">
+              <Zap className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Bem-vindo ao Meta Aura</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-bold text-white">Bem-vindo ao ChatData</CardTitle>
+          <CardDescription className="text-white/60">
             Faça login para acessar seus insights de Meta Ads
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-white/80">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="seu@email.com"
                 {...register('email')}
                 disabled={isLoading}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary"
               />
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-white/80">Senha</Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={isLoading}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary"
               />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold" disabled={isLoading}>
               {isLoading ? <LoadingSpinner size="sm" /> : 'Entrar'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-white/60 text-center">
             Não tem uma conta?{' '}
             <Link to="/register" className="text-primary hover:underline font-medium">
               Cadastre-se

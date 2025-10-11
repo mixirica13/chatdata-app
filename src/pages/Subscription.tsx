@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Sidebar } from '@/components/Sidebar';
-import { Header } from '@/components/Header';
+import { LiquidGlass } from '@/components/LiquidGlass';
+import { BottomNav } from '@/components/BottomNav';
+import { Logo } from '@/components/Logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,12 +19,14 @@ const Subscription = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout');
-      
+
       if (error) throw error;
-      
+
       if (data?.url) {
-        window.open(data.url, '_blank');
+        window.location.href = data.url;
         toast.success('Redirecionando para o checkout...');
+      } else {
+        toast.error('Erro: Nenhuma URL de checkout retornada');
       }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao iniciar checkout');
@@ -45,108 +48,107 @@ const Subscription = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">Assinatura</h1>
-              <p className="text-muted-foreground mt-1">
-                Gerencie sua assinatura e acesse recursos premium
-              </p>
-            </div>
+    <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
+      {/* Logo fixa no header */}
+      <div className="w-full flex justify-center pt-0 pb-4">
+        <Logo className="h-16 w-auto" />
+      </div>
 
-            {isSubscribed && (
-              <Card className="border-green-500/50 bg-green-500/5">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Crown className="w-5 h-5 text-green-600" />
-                        Plano Ativo
-                      </CardTitle>
-                      <CardDescription>
-                        Você tem acesso a todos os recursos premium
-                      </CardDescription>
-                    </div>
-                    <Badge variant="default" className="bg-green-600">
-                      Ativo
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {subscriptionEnd && (
-                      <p className="text-sm text-muted-foreground">
-                        Renovação em: {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
-                      </p>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={handleCheckStatus}
-                      disabled={isChecking}
-                    >
-                      {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Atualizar Status
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
+      <div className="w-full max-w-2xl mx-auto space-y-6">
+        {isSubscribed && (
+          <LiquidGlass>
+            <Card className="bg-transparent border-0">
               <CardHeader>
-                <CardTitle>Plano Premium - Meta Ads Insights</CardTitle>
-                <CardDescription>
-                  Acesso completo à plataforma de insights com IA
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Crown className="w-5 h-5 text-[#46CCC6]" />
+                      Plano Ativo
+                    </CardTitle>
+                    <CardDescription className="text-white/60">
+                      Você tem acesso a todos os recursos premium
+                    </CardDescription>
+                  </div>
+                  <Badge className="bg-[#46CCC6] text-black">
+                    Ativo
+                  </Badge>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-3xl font-bold">
-                  R$ 99,00 <span className="text-lg font-normal text-muted-foreground">/mês</span>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span>Insights ilimitados via WhatsApp</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span>Análise de campanhas em tempo real</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span>Recomendações personalizadas com IA</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span>Relatórios detalhados de performance</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span>Suporte prioritário</span>
-                  </div>
-                </div>
-
-                {!isSubscribed && (
+              <CardContent>
+                <div className="space-y-4">
+                  {subscriptionEnd && (
+                    <p className="text-sm text-white/60">
+                      Renovação em: {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
+                    </p>
+                  )}
                   <Button
-                    size="lg"
-                    className="w-full"
-                    onClick={handleSubscribe}
-                    disabled={isLoading}
+                    variant="outline"
+                    onClick={handleCheckStatus}
+                    disabled={isChecking}
+                    className="border-white/20 text-white hover:bg-white/10"
                   >
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Assinar Agora
+                    {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Atualizar Status
                   </Button>
-                )}
+                </div>
               </CardContent>
             </Card>
-          </div>
-        </main>
+          </LiquidGlass>
+        )}
+
+        <LiquidGlass>
+          <Card className="bg-transparent border-0">
+            <CardHeader>
+              <CardTitle className="text-white">Plano Premium</CardTitle>
+              <CardDescription className="text-white/60">
+                Acesso completo à plataforma de insights com IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-4xl font-bold text-[#46CCC6]">
+                R$ 99,00 <span className="text-lg font-normal text-white/60">/mês</span>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-white">
+                  <Check className="w-5 h-5 text-[#46CCC6]" />
+                  <span>Insights ilimitados via WhatsApp</span>
+                </div>
+                <div className="flex items-center gap-2 text-white">
+                  <Check className="w-5 h-5 text-[#46CCC6]" />
+                  <span>Análise de campanhas em tempo real</span>
+                </div>
+                <div className="flex items-center gap-2 text-white">
+                  <Check className="w-5 h-5 text-[#46CCC6]" />
+                  <span>Recomendações personalizadas com IA</span>
+                </div>
+                <div className="flex items-center gap-2 text-white">
+                  <Check className="w-5 h-5 text-[#46CCC6]" />
+                  <span>Relatórios detalhados de performance</span>
+                </div>
+                <div className="flex items-center gap-2 text-white">
+                  <Check className="w-5 h-5 text-[#46CCC6]" />
+                  <span>Suporte prioritário</span>
+                </div>
+              </div>
+
+              {!isSubscribed && (
+                <Button
+                  size="lg"
+                  className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
+                  onClick={handleSubscribe}
+                  disabled={isLoading}
+                >
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Assinar Agora
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </LiquidGlass>
       </div>
+
+      <BottomNav />
     </div>
   );
 };

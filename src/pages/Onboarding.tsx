@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -9,24 +8,21 @@ import { toast } from 'sonner';
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const { completeOnboarding } = useAuthStore();
   const navigate = useNavigate();
 
-  const totalSteps = 3;
+  const totalSteps = 2;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      completeOnboarding();
       toast.success('Configuração concluída! Bem-vindo ao Meta Aura.');
       navigate('/dashboard');
     }
   };
 
   const handleSkip = () => {
-    completeOnboarding();
     navigate('/dashboard');
   };
 
@@ -57,7 +53,7 @@ const Onboarding = () => {
                 </div>
                 <CardTitle className="text-3xl font-bold">Bem-vindo ao Meta Aura</CardTitle>
                 <CardDescription className="text-base mt-2">
-                  Receba insights inteligentes das suas campanhas de Meta Ads diretamente no WhatsApp
+                  Receba insights inteligentes das suas campanhas de Meta Ads com análises automáticas
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -74,9 +70,9 @@ const Onboarding = () => {
                   <div className="flex gap-3">
                     <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h4 className="font-semibold">Insights via WhatsApp</h4>
+                      <h4 className="font-semibold">Suporte especializado</h4>
                       <p className="text-sm text-muted-foreground">
-                        Receba notificações instantâneas com recomendações práticas
+                        Tire dúvidas sobre tráfego pago com nossa equipe via WhatsApp
                       </p>
                     </div>
                   </div>
@@ -132,38 +128,6 @@ const Onboarding = () => {
             </>
           )}
 
-          {currentStep === 3 && (
-            <>
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-green-500 p-4 rounded-2xl">
-                    <MessageCircle className="w-12 h-12 text-white" />
-                  </div>
-                </div>
-                <CardTitle className="text-2xl font-bold">Configurar WhatsApp</CardTitle>
-                <CardDescription className="text-base mt-2">
-                  Conecte seu WhatsApp para receber insights em tempo real
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-muted p-6 rounded-lg flex flex-col items-center">
-                  <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center mb-4">
-                    <div className="text-center">
-                      <div className="text-6xl mb-2">📱</div>
-                      <p className="text-xs text-muted-foreground">QR Code aparecerá aqui</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <p>1. Abra o WhatsApp no seu celular</p>
-                    <p>2. Toque em Menu ou Configurações</p>
-                    <p>3. Toque em Dispositivos conectados</p>
-                    <p>4. Toque em Conectar dispositivo</p>
-                    <p>5. Aponte o celular para escanear o QR Code</p>
-                  </div>
-                </div>
-              </CardContent>
-            </>
-          )}
 
           <div className="flex justify-between p-6 border-t">
             <Button

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,7 +14,7 @@ const ConnectMeta = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
-  const { connectMeta } = useAuthStore();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleConnect = async () => {
@@ -24,14 +25,29 @@ const ConnectMeta = () => {
     setIsConnecting(false);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedAccounts.length === 0) {
       toast.error('Selecione pelo menos uma conta de anúncios');
       return;
     }
-    connectMeta();
-    toast.success('Meta Ads conectado com sucesso!');
-    navigate('/dashboard');
+
+    try {
+      // Update profile in database
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ meta_connected: true })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      }
+
+      toast.success('Meta Ads conectado com sucesso!');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error('Erro ao conectar Meta Ads. Tente novamente.');
+      console.error(error);
+    }
   };
 
   const toggleAccount = (accountId: string) => {
@@ -100,7 +116,7 @@ const ConnectMeta = () => {
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting}
-                  className="w-full"
+                  className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
                   size="lg"
                 >
                   {isConnecting ? (
@@ -147,7 +163,7 @@ const ConnectMeta = () => {
 
                   <Button
                     onClick={handleConfirm}
-                    className="w-full"
+                    className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
                     size="lg"
                     disabled={selectedAccounts.length === 0}
                   >

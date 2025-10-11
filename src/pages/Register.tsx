@@ -51,9 +51,13 @@ const Register = () => {
     setIsLoading(true);
     try {
       await registerUser(data.name, data.email, data.password);
-      toast.success('Conta criada com sucesso! Você já pode fazer login.');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
+      if (error.message === 'REGISTRATION_SUCCESS') {
+        toast.success('Conta criada com sucesso!');
+        navigate(`/confirm-email?email=${encodeURIComponent(data.email)}`);
+      } else {
+        toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
+      }
     } finally {
       setIsLoading(false);
     }

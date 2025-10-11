@@ -1,218 +1,128 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Sidebar } from '@/components/Sidebar';
-import { Header } from '@/components/Header';
-import { ConnectionCard } from '@/components/ConnectionCard';
+import { LiquidGlass } from '@/components/LiquidGlass';
+import { BottomNav } from '@/components/BottomNav';
+import { Logo } from '@/components/Logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { LogOut } from 'lucide-react';
 
 const Settings = () => {
-  const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { user, profile, logout } = useAuth();
   const [name, setName] = useState(profile?.name || '');
   const [email, setEmail] = useState(user?.email || '');
 
   const handleSaveProfile = async () => {
     try {
       if (!user) return;
-      
+
       const { error } = await supabase
         .from('profiles')
         .update({ name, email })
         .eq('user_id', user.id);
-      
+
       if (error) throw error;
-      
+
       toast.success('Perfil atualizado com sucesso!');
     } catch (error: any) {
       toast.error(error.message || 'Erro ao atualizar perfil');
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logout realizado com sucesso!');
+      navigate('/login');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao fazer logout');
+    }
+  };
+
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">Configurações</h1>
-              <p className="text-muted-foreground mt-1">
-                Gerencie suas preferências e configurações da conta
-              </p>
-            </div>
-
-            <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="profile">Perfil</TabsTrigger>
-                <TabsTrigger value="connections">Conexões</TabsTrigger>
-                <TabsTrigger value="notifications">Notificações</TabsTrigger>
-                <TabsTrigger value="security">Segurança</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="profile">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Informações do Perfil</CardTitle>
-                    <CardDescription>
-                      Atualize suas informações pessoais
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-20 h-20">
-                        <AvatarImage src={profile?.avatar_url} alt={profile?.name} />
-                        <AvatarFallback className="text-2xl">{profile?.name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <Button variant="outline">Alterar foto</Button>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome completo</Label>
-                      <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    <Button onClick={handleSaveProfile}>Salvar alterações</Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="connections">
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Conexões</CardTitle>
-                      <CardDescription>
-                        Gerencie suas integrações com Meta Ads e WhatsApp
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        As conexões com Meta Ads e WhatsApp serão configuradas em breve.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="notifications">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Preferências de Notificações</CardTitle>
-                    <CardDescription>
-                      Escolha como deseja receber notificações
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Insights de performance</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receba notificações sobre mudanças significativas
-                        </p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Alertas de orçamento</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Avisos quando campanhas atingirem limite de gastos
-                        </p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Recomendações da IA</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Sugestões de otimização de campanhas
-                        </p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Relatórios semanais</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Resumo semanal de todas as campanhas
-                        </p>
-                      </div>
-                      <Switch />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="security">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Segurança da Conta</CardTitle>
-                    <CardDescription>
-                      Gerencie a segurança da sua conta
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold mb-2">Alterar senha</h3>
-                        <div className="space-y-3">
-                          <div className="space-y-2">
-                            <Label htmlFor="current-password">Senha atual</Label>
-                            <Input id="current-password" type="password" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="new-password">Nova senha</Label>
-                            <Input id="new-password" type="password" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="confirm-password">Confirmar nova senha</Label>
-                            <Input id="confirm-password" type="password" />
-                          </div>
-                          <Button>Atualizar senha</Button>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t">
-                        <h3 className="font-semibold mb-2">Sessões ativas</h3>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-3 border rounded-lg">
-                            <div>
-                              <p className="font-medium">Chrome em Windows</p>
-                              <p className="text-sm text-muted-foreground">São Paulo, Brasil • Agora</p>
-                            </div>
-                            <Button variant="outline" size="sm">Encerrar</Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
+    <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
+      {/* Logo fixa no header */}
+      <div className="w-full flex justify-center pt-0 pb-4">
+        <Logo className="h-16 w-auto" />
       </div>
+
+      <div className="w-full max-w-2xl mx-auto space-y-6">
+        <LiquidGlass>
+          <Card className="bg-transparent border-0">
+            <CardHeader>
+              <CardTitle className="text-white">Perfil</CardTitle>
+              <CardDescription className="text-white/60">
+                Suas informações pessoais
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-20 h-20 border-2 border-[#46CCC6]/30">
+                  <AvatarImage src={profile?.avatar_url} alt={profile?.name} />
+                  <AvatarFallback className="text-2xl bg-[#46CCC6]/20 text-[#46CCC6]">
+                    {profile?.name?.charAt(0) || user?.email?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-white/80">Nome completo</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white/80">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+              </div>
+              <Button
+                onClick={handleSaveProfile}
+                className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
+              >
+                Salvar alterações
+              </Button>
+            </CardContent>
+          </Card>
+        </LiquidGlass>
+
+        <LiquidGlass>
+          <Card className="bg-transparent border-0">
+            <CardHeader>
+              <CardTitle className="text-white">Conta</CardTitle>
+              <CardDescription className="text-white/60">
+                Gerencie sua conta
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={handleLogout}
+                variant="destructive"
+                className="w-full"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair da conta
+              </Button>
+            </CardContent>
+          </Card>
+        </LiquidGlass>
+      </div>
+
+      <BottomNav />
     </div>
   );
 };

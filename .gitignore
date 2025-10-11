@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Supabase config with access token
+supabase/config.toml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
