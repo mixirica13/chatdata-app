@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Zap } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
@@ -71,12 +71,10 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
       <Card className="w-full max-w-md bg-card border-white/10">
         <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-primary/20 p-3 rounded-xl">
-              <Zap className="w-8 h-8 text-primary" />
-            </div>
+          <div className="flex justify-center mb-6">
+            <Logo className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Bem-vindo ao ChatData</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Bem-vindo</CardTitle>
           <CardDescription className="text-white/60">
             Faça login para acessar seus insights de Meta Ads
           </CardDescription>

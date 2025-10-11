@@ -60,22 +60,22 @@ const ConfirmEmail = () => {
           </div>
 
           <div className="space-y-3 bg-accent/50 p-4 rounded-lg">
-            <p className="font-medium text-sm flex items-center gap-2">
+            <p className="font-medium text-sm flex items-center gap-2 text-white">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
               Próximos passos:
             </p>
-            <ol className="space-y-2 text-sm text-muted-foreground ml-6">
+            <ol className="space-y-2 text-sm ml-6">
               <li className="flex gap-2">
-                <span className="font-semibold text-foreground">1.</span>
-                <span>Abra seu email e procure por uma mensagem do Meta Aura</span>
+                <span className="font-semibold text-white">1.</span>
+                <span className="text-white">Abra seu email e procure por uma mensagem do ChatData</span>
               </li>
               <li className="flex gap-2">
-                <span className="font-semibold text-foreground">2.</span>
-                <span>Clique no link de confirmação</span>
+                <span className="font-semibold text-white">2.</span>
+                <span className="text-white">Clique no link de confirmação</span>
               </li>
               <li className="flex gap-2">
-                <span className="font-semibold text-foreground">3.</span>
-                <span>Você será redirecionado para fazer login</span>
+                <span className="font-semibold text-white">3.</span>
+                <span className="text-white">Você será redirecionado para fazer login</span>
               </li>
             </ol>
           </div>
