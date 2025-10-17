@@ -11,12 +11,14 @@ interface AuthState {
   isSubscribed: boolean;
   subscriptionEnd: string | null;
   metaConnected: boolean;
+  whatsappConnected: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSubscription: () => Promise<void>;
   initialize: () => Promise<void>;
   disconnectMeta: () => Promise<void>;
+  disconnectWhatsapp: () => Promise<void>;
 }
 
 export const useAuth = create<AuthState>()(
@@ -29,6 +31,7 @@ export const useAuth = create<AuthState>()(
       isSubscribed: false,
       subscriptionEnd: null,
       metaConnected: false,
+      whatsappConnected: false,
 
       initialize: async () => {
         try {
@@ -49,6 +52,7 @@ export const useAuth = create<AuthState>()(
               isSubscribed: profile?.subscription_status === 'active',
               subscriptionEnd: profile?.subscription_end_date,
               metaConnected: profile?.meta_connected || false,
+              whatsappConnected: profile?.whatsapp_connected || false,
               isLoading: false,
             });
 
@@ -74,6 +78,7 @@ export const useAuth = create<AuthState>()(
                 isSubscribed: profile?.subscription_status === 'active',
                 subscriptionEnd: profile?.subscription_end_date,
                 metaConnected: profile?.meta_connected || false,
+                whatsappConnected: profile?.whatsapp_connected || false,
               });
 
               if (event === 'SIGNED_IN') {
@@ -87,6 +92,7 @@ export const useAuth = create<AuthState>()(
                 isSubscribed: false,
                 subscriptionEnd: null,
                 metaConnected: false,
+                whatsappConnected: false,
               });
             }
           });
@@ -124,6 +130,7 @@ export const useAuth = create<AuthState>()(
             isSubscribed: profile?.subscription_status === 'active',
             subscriptionEnd: profile?.subscription_end_date,
             metaConnected: profile?.meta_connected || false,
+            whatsappConnected: profile?.whatsapp_connected || false,
           });
         }
       },
@@ -181,6 +188,7 @@ export const useAuth = create<AuthState>()(
               isSubscribed: profile?.subscription_status === 'active',
               subscriptionEnd: profile?.subscription_end_date,
               metaConnected: profile?.meta_connected || false,
+              whatsappConnected: profile?.whatsapp_connected || false,
             });
           }
         } catch (error) {
@@ -203,6 +211,28 @@ export const useAuth = create<AuthState>()(
           }
         } catch (error) {
           console.error('Disconnect Meta error:', error);
+          throw error;
+        }
+      },
+
+      disconnectWhatsapp: async () => {
+        try {
+          const state = get();
+          if (state.user) {
+            const { error } = await supabase
+              .from('profiles')
+              .update({
+                whatsapp_connected: false,
+                whatsapp_phone: null
+              })
+              .eq('user_id', state.user.id);
+
+            if (error) throw error;
+
+            set({ whatsappConnected: false });
+          }
+        } catch (error) {
+          console.error('Disconnect WhatsApp error:', error);
           throw error;
         }
       },

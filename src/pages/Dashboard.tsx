@@ -4,11 +4,11 @@ import { ConnectionCard } from '@/components/ConnectionCard';
 import { LiquidGlass } from '@/components/LiquidGlass';
 import { BottomNav } from '@/components/BottomNav';
 import { Logo } from '@/components/Logo';
-import { Facebook } from 'lucide-react';
+import { Facebook, MessageCircle } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { metaConnected, disconnectMeta } = useAuth();
+  const { metaConnected, disconnectMeta, whatsappConnected, disconnectWhatsapp } = useAuth();
 
   return (
     <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
@@ -19,7 +19,7 @@ const Dashboard = () => {
 
       {/* Content centralizado */}
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md space-y-4">
           <LiquidGlass className="p-1">
             <ConnectionCard
               title="Meta Ads"
@@ -28,6 +28,17 @@ const Dashboard = () => {
               connected={metaConnected}
               onConnect={() => navigate('/connect/meta')}
               onDisconnect={disconnectMeta}
+            />
+          </LiquidGlass>
+
+          <LiquidGlass className="p-1">
+            <ConnectionCard
+              title="WhatsApp"
+              description="Autentique seu número para usar a IA via WhatsApp"
+              icon={MessageCircle}
+              connected={whatsappConnected}
+              onConnect={() => navigate('/connect/whatsapp')}
+              onDisconnect={disconnectWhatsapp}
             />
           </LiquidGlass>
         </div>

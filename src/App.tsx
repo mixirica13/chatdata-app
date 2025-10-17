@@ -12,10 +12,13 @@ import EmailConfirmed from "./pages/EmailConfirmed";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import ConnectMeta from "./pages/ConnectMeta";
+import ConnectWhatsApp from "./pages/ConnectWhatsApp";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
+import WhatsAppVerify from "./pages/WhatsAppVerify";
+import WhatsAppLogin from "./pages/WhatsAppLogin";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +61,8 @@ const App = () => {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/whatsapp-login" element={<WhatsAppLogin />} />
+            <Route path="/auth/verify" element={<WhatsAppVerify />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/email-confirmed" element={<EmailConfirmed />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
@@ -65,6 +70,7 @@ const App = () => {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             <Route path="/connect/meta" element={<ProtectedRoute><ConnectMeta /></ProtectedRoute>} />
+            <Route path="/connect/whatsapp" element={<ProtectedRoute><ConnectWhatsApp /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
