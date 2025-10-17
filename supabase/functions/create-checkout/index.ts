@@ -49,18 +49,25 @@ serve(async (req) => {
       logStep("No customer found, will create on checkout");
     }
 
+    const priceId = "price_1SGWsuPP0f85Y8YeWAxdErjJ";
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
+      client_reference_id: user.id,
       line_items: [
         {
-          price: "price_1SGWsuPP0f85Y8YeWAxdErjJ",
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/dashboard?checkout=success`,
       cancel_url: `${req.headers.get("origin")}/dashboard?checkout=canceled`,
+      metadata: {
+        price_id: priceId,
+        user_id: user.id,
+      },
     });
 
     logStep("Checkout session created", { sessionId: session.id });
