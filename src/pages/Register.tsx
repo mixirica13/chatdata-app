@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,22 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import '@/styles/phone-input.css';
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Nome muito longo'),
   email: z.string().email('Email inválido').trim().max(255, 'Email muito longo'),
-  whatsapp: z.string().trim().min(10, 'WhatsApp inválido').max(20, 'WhatsApp muito longo').regex(/^[\d\s\+\-\(\)]+$/, 'WhatsApp deve conter apenas números'),
+  whatsapp: z.string()
+    .min(1, 'WhatsApp é obrigatório')
+    .refine((value) => {
+      try {
+        return isValidPhoneNumber(value);
+      } catch {
+        return false;
+      }
+    }, 'Número de telefone inválido'),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(100, 'Senha muito longa'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -43,15 +54,19 @@ const Register = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      whatsapp: '',
+    },
   });
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      await registerUser(data.name, data.email, data.password);
+      await registerUser(data.name, data.email, data.password, data.whatsapp);
     } catch (error: any) {
       if (error.message === 'REGISTRATION_SUCCESS') {
         toast.success('Conta criada com sucesso!');
@@ -107,13 +122,22 @@ const Register = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="whatsapp" className="text-white/80">WhatsApp</Label>
-              <Input
-                id="whatsapp"
-                type="tel"
-                placeholder="+55 11 98765-4321"
-                {...register('whatsapp')}
-                disabled={isLoading}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary"
+              <Controller
+                name="whatsapp"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <PhoneInput
+                    international
+                    defaultCountry="BR"
+                    value={value}
+                    onChange={onChange}
+                    disabled={isLoading}
+                    className="phone-input bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white focus-within:border-primary focus-within:bg-black transition-colors"
+                    numberInputProps={{
+                      className: "bg-transparent border-none outline-none text-white placeholder:text-white/40 w-full"
+                    }}
+                  />
+                )}
               />
               {errors.whatsapp && (
                 <p className="text-sm text-destructive">{errors.whatsapp.message}</p>

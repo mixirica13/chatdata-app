@@ -13,7 +13,7 @@ interface AuthState {
   metaConnected: boolean;
   whatsappConnected: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, whatsapp?: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSubscription: () => Promise<void>;
   initialize: () => Promise<void>;
@@ -38,9 +38,9 @@ export const useAuth = create<AuthState>()(
           const { data: { session } } = await supabase.auth.getSession();
           
           if (session?.user) {
-            // Get profile
+            // Get subscriber data (replaces profile)
             const { data: profile } = await supabase
-              .from('profiles')
+              .from('subscribers')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
@@ -49,8 +49,8 @@ export const useAuth = create<AuthState>()(
               user: session.user,
               profile,
               isAuthenticated: true,
-              isSubscribed: profile?.subscription_status === 'active',
-              subscriptionEnd: profile?.subscription_end_date,
+              isSubscribed: profile?.subscribed || false,
+              subscriptionEnd: profile?.subscription_end,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
               isLoading: false,
@@ -66,7 +66,7 @@ export const useAuth = create<AuthState>()(
           supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
               const { data: profile } = await supabase
-                .from('profiles')
+                .from('subscribers')
                 .select('*')
                 .eq('user_id', session.user.id)
                 .single();
@@ -75,8 +75,8 @@ export const useAuth = create<AuthState>()(
                 user: session.user,
                 profile,
                 isAuthenticated: true,
-                isSubscribed: profile?.subscription_status === 'active',
-                subscriptionEnd: profile?.subscription_end_date,
+                isSubscribed: profile?.subscribed || false,
+                subscriptionEnd: profile?.subscription_end,
                 metaConnected: profile?.meta_connected || false,
                 whatsappConnected: profile?.whatsapp_connected || false,
               });
@@ -118,7 +118,7 @@ export const useAuth = create<AuthState>()(
 
         if (data.user) {
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('subscribers')
             .select('*')
             .eq('user_id', data.user.id)
             .single();
@@ -127,20 +127,20 @@ export const useAuth = create<AuthState>()(
             user: data.user,
             profile,
             isAuthenticated: true,
-            isSubscribed: profile?.subscription_status === 'active',
-            subscriptionEnd: profile?.subscription_end_date,
+            isSubscribed: profile?.subscribed || false,
+            subscriptionEnd: profile?.subscription_end,
             metaConnected: profile?.meta_connected || false,
             whatsappConnected: profile?.whatsapp_connected || false,
           });
         }
       },
 
-      register: async (name: string, email: string, password: string) => {
+      register: async (name: string, email: string, password: string, whatsapp?: string) => {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { name },
+            data: { name, whatsapp },
             emailRedirectTo: `${window.location.origin}/email-confirmed`,
           },
         });
@@ -178,15 +178,15 @@ export const useAuth = create<AuthState>()(
           const state = get();
           if (state.user) {
             const { data: profile } = await supabase
-              .from('profiles')
+              .from('subscribers')
               .select('*')
               .eq('user_id', state.user.id)
               .single();
 
             set({
               profile,
-              isSubscribed: profile?.subscription_status === 'active',
-              subscriptionEnd: profile?.subscription_end_date,
+              isSubscribed: profile?.subscribed || false,
+              subscriptionEnd: profile?.subscription_end,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
             });
@@ -201,7 +201,7 @@ export const useAuth = create<AuthState>()(
           const state = get();
           if (state.user) {
             const { error } = await supabase
-              .from('profiles')
+              .from('subscribers')
               .update({ meta_connected: false })
               .eq('user_id', state.user.id);
 
@@ -220,7 +220,7 @@ export const useAuth = create<AuthState>()(
           const state = get();
           if (state.user) {
             const { error } = await supabase
-              .from('profiles')
+              .from('subscribers')
               .update({
                 whatsapp_connected: false,
                 whatsapp_phone: null
