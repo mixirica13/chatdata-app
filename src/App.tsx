@@ -21,6 +21,7 @@ import WhatsAppVerify from "./pages/WhatsAppVerify";
 import WhatsAppLogin from "./pages/WhatsAppLogin";
 import LandingPage from "./pages/LandingPage";
 import LandingPageV2 from "./pages/LandingPageV2";
+import LandingPageV3 from "./pages/LandingPageV3";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/lp-v2" element={<LandingPageV2 />} />
+            <Route path="/lp-v3" element={<LandingPageV3 />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/whatsapp-login" element={<WhatsAppLogin />} />
