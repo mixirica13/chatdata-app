@@ -19,6 +19,8 @@ import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 import WhatsAppVerify from "./pages/WhatsAppVerify";
 import WhatsAppLogin from "./pages/WhatsAppLogin";
+import LandingPage from "./pages/LandingPage";
+import LandingPageV2 from "./pages/LandingPageV2";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +61,8 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/lp-v2" element={<LandingPageV2 />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/whatsapp-login" element={<WhatsAppLogin />} />
@@ -66,7 +70,6 @@ const App = () => {
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/email-confirmed" element={<EmailConfirmed />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             <Route path="/connect/meta" element={<ProtectedRoute><ConnectMeta /></ProtectedRoute>} />
