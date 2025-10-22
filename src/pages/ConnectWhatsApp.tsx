@@ -87,7 +87,7 @@ const ConnectWhatsApp = () => {
       if (!user) return;
 
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('subscribers')
         .select('whatsapp_connected, whatsapp_phone')
         .eq('user_id', user.id)
         .single();

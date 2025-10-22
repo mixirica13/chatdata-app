@@ -12,47 +12,114 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      profiles: {
+      subscribers: {
         Row: {
           avatar_url: string | null
           created_at: string
           email: string
           id: string
-          name: string
+          name: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          subscription_end_date: string | null
-          subscription_status: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
           updated_at: string
           user_id: string
+          whatsapp_connected: boolean | null
+          whatsapp_phone: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           email: string
           id?: string
-          name: string
+          name?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
-          subscription_end_date?: string | null
-          subscription_status?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_connected?: boolean | null
+          whatsapp_phone?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           email?: string
           id?: string
-          name?: string
+          name?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
-          subscription_end_date?: string | null
-          subscription_status?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_connected?: boolean | null
+          whatsapp_phone?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_auth_tokens: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          phone: string
+          token: string
+          used: boolean | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          phone: string
+          token: string
+          used?: boolean | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          phone?: string
+          token?: string
+          used?: boolean | null
+          used_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -61,7 +128,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      clean_expired_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -190,6 +260,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

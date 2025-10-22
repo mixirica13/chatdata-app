@@ -69,10 +69,10 @@ export default function WhatsAppVerify() {
               throw signUpError;
             }
 
-            // Atualizar profile com número do WhatsApp
+            // Atualizar subscriber com número do WhatsApp
             if (signUpData.user) {
               await supabase
-                .from('profiles')
+                .from('subscribers')
                 .update({
                   whatsapp_connected: true,
                   whatsapp_phone: phone,
@@ -83,10 +83,10 @@ export default function WhatsAppVerify() {
             throw error;
           }
         } else {
-          // Login bem-sucedido - atualizar profile com número do WhatsApp
+          // Login bem-sucedido - atualizar subscriber com número do WhatsApp
           if (authData.user) {
             await supabase
-              .from('profiles')
+              .from('subscribers')
               .update({
                 whatsapp_connected: true,
                 whatsapp_phone: phone,

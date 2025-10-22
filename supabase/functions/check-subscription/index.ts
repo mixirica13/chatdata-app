@@ -49,14 +49,14 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No customer found");
       
-      // Update profile with inactive status
+      // Update subscriber with inactive status
       await supabaseClient
-        .from("profiles")
-        .update({ 
-          subscription_status: "inactive",
+        .from("subscribers")
+        .update({
+          subscribed: false,
           stripe_customer_id: null,
           stripe_subscription_id: null,
-          subscription_end_date: null
+          subscription_end: null
         })
         .eq("user_id", user.id);
       
@@ -85,27 +85,27 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       logStep("Active subscription found", { subscriptionId, endDate: subscriptionEnd });
       
-      // Update profile with active subscription
+      // Update subscriber with active subscription
       await supabaseClient
-        .from("profiles")
-        .update({ 
-          subscription_status: "active",
+        .from("subscribers")
+        .update({
+          subscribed: true,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
-          subscription_end_date: subscriptionEnd
+          subscription_end: subscriptionEnd
         })
         .eq("user_id", user.id);
     } else {
       logStep("No active subscription found");
       
-      // Update profile with inactive status
+      // Update subscriber with inactive status
       await supabaseClient
-        .from("profiles")
-        .update({ 
-          subscription_status: "inactive",
+        .from("subscribers")
+        .update({
+          subscribed: false,
           stripe_customer_id: customerId,
           stripe_subscription_id: null,
-          subscription_end_date: null
+          subscription_end: null
         })
         .eq("user_id", user.id);
     }
