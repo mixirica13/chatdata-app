@@ -24,6 +24,7 @@ import LandingPageV2 from "./pages/LandingPageV2";
 import LandingPageV3 from "./pages/LandingPageV3";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import DataDeletion from "./pages/DataDeletion";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => {
             <Route path="/lp-v3" element={<LandingPageV3 />} />
             <Route path="/termos" element={<TermsOfService />} />
             <Route path="/privacidade" element={<PrivacyPolicy />} />
+            <Route path="/exclusao-dados" element={<DataDeletion />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/whatsapp-login" element={<WhatsAppLogin />} />

@@ -89,13 +89,13 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-white/60 hover:text-[#46CCC6] transition-colors text-sm">
-                  Cookies
+                <a href="/exclusao-dados" className="text-white/60 hover:text-[#46CCC6] transition-colors text-sm">
+                  Exclusão de Dados
                 </a>
               </li>
               <li>
                 <a href="#" className="text-white/60 hover:text-[#46CCC6] transition-colors text-sm">
-                  LGPD
+                  Cookies
                 </a>
               </li>
             </ul>
