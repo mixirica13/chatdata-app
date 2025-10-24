@@ -78,9 +78,33 @@ serve(async (req)=>{
           console.log(`Checkout completado: ${session.id}`);
           console.log(`Metadata da sessão: ${JSON.stringify(session.metadata)}`);
           console.log(`Price ID na metadata: ${session.metadata?.price_id}`);
+          console.log(`Subscription ID: ${session.subscription}`);
+
           // Obter detalhes do cliente
           const customer = await stripe.customers.retrieve(session.customer);
           console.log(`Cliente: ${JSON.stringify(customer)}`);
+
+          // Buscar a assinatura real para obter a data correta
+          let subscriptionEnd;
+          if (session.subscription) {
+            try {
+              const subscription = await stripe.subscriptions.retrieve(session.subscription);
+              if (subscription.current_period_end) {
+                subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+                console.log(`Data de término da assinatura: ${subscriptionEnd}`);
+              } else {
+                console.warn(`current_period_end não encontrado, usando data padrão de 30 dias`);
+                subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+              }
+            } catch (err) {
+              console.error(`Erro ao buscar assinatura: ${err.message}, usando data padrão`);
+              subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            }
+          } else {
+            console.warn(`Nenhuma assinatura encontrada na sessão, usando data padrão de 30 dias`);
+            subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
+
           // Atualizar ou inserir registro na tabela subscribers
           const { error } = await supabase.from('subscribers').upsert({
             user_id: session.client_reference_id,
@@ -88,7 +112,8 @@ serve(async (req)=>{
             stripe_customer_id: session.customer,
             subscribed: true,
             subscription_tier: getPlanTier(session.metadata.price_id),
-            subscription_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            subscription_end: subscriptionEnd,
+            cancel_at_period_end: false,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'user_id'
@@ -112,8 +137,31 @@ serve(async (req)=>{
           console.log(`ID do preço na assinatura atualizada: ${priceId}`);
           // Verificar se a assinatura está ativa
           const isActive = subscription.status === 'active';
-          // Calcular a data de término com base no período atual
-          const subscriptionEnd = new Date(subscription.current_period_end * 1000);
+
+          // Buscar data de término em múltiplos lugares (com validação)
+          let subscriptionEnd;
+          let periodEndTimestamp = null;
+
+          // Tentar obter de diferentes locais
+          if (subscription.current_period_end && !isNaN(subscription.current_period_end)) {
+            periodEndTimestamp = subscription.current_period_end;
+            console.log(`Usando current_period_end do subscription: ${periodEndTimestamp}`);
+          } else if (subscription.items?.data?.[0]?.current_period_end) {
+            periodEndTimestamp = subscription.items.data[0].current_period_end;
+            console.log(`Usando current_period_end do subscription item: ${periodEndTimestamp}`);
+          } else if (subscription.cancel_at && !isNaN(subscription.cancel_at)) {
+            periodEndTimestamp = subscription.cancel_at;
+            console.log(`Usando cancel_at: ${periodEndTimestamp}`);
+          }
+
+          if (periodEndTimestamp && !isNaN(periodEndTimestamp)) {
+            subscriptionEnd = new Date(periodEndTimestamp * 1000).toISOString();
+            console.log(`Data de término final: ${subscriptionEnd}`);
+          } else {
+            console.warn(`Nenhum timestamp válido encontrado, usando data padrão de 30 dias`);
+            subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
+
           // Buscar o usuário pelo customer_id
           const { data: subscribers, error: fetchError } = await supabase.from('subscribers').select('user_id').eq('stripe_customer_id', subscription.customer).limit(1);
           if (fetchError || !subscribers || subscribers.length === 0) {
@@ -128,7 +176,8 @@ serve(async (req)=>{
             stripe_customer_id: subscription.customer,
             subscribed: isActive,
             subscription_tier: getPlanTier(priceId),
-            subscription_end: subscriptionEnd.toISOString(),
+            subscription_end: subscriptionEnd,
+            cancel_at_period_end: subscription.cancel_at_period_end || false,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'user_id'
@@ -187,8 +236,31 @@ serve(async (req)=>{
             // Obter o ID do preço da assinatura
             const priceId = subscription.items.data[0].price.id;
             console.log(`ID do preço na fatura: ${priceId}`);
-            // Calcular a data de término com base no período atual
-            const subscriptionEnd = new Date(subscription.current_period_end * 1000);
+
+            // Buscar data de término em múltiplos lugares (com validação)
+            let subscriptionEnd;
+            let periodEndTimestamp = null;
+
+            // Tentar obter de diferentes locais
+            if (subscription.current_period_end && !isNaN(subscription.current_period_end)) {
+              periodEndTimestamp = subscription.current_period_end;
+              console.log(`Usando current_period_end do subscription: ${periodEndTimestamp}`);
+            } else if (subscription.items?.data?.[0]?.current_period_end) {
+              periodEndTimestamp = subscription.items.data[0].current_period_end;
+              console.log(`Usando current_period_end do subscription item: ${periodEndTimestamp}`);
+            } else if (subscription.cancel_at && !isNaN(subscription.cancel_at)) {
+              periodEndTimestamp = subscription.cancel_at;
+              console.log(`Usando cancel_at: ${periodEndTimestamp}`);
+            }
+
+            if (periodEndTimestamp && !isNaN(periodEndTimestamp)) {
+              subscriptionEnd = new Date(periodEndTimestamp * 1000).toISOString();
+              console.log(`Data de término final na fatura: ${subscriptionEnd}`);
+            } else {
+              console.warn(`Nenhum timestamp válido encontrado na fatura, usando data padrão`);
+              subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            }
+
             // Buscar o usuário pelo customer_id
             const { data: subscribers, error: fetchError } = await supabase.from('subscribers').select('user_id').eq('stripe_customer_id', invoice.customer).limit(1);
             if (fetchError || !subscribers || subscribers.length === 0) {
@@ -203,7 +275,8 @@ serve(async (req)=>{
               stripe_customer_id: invoice.customer,
               subscribed: true,
               subscription_tier: getPlanTier(priceId),
-              subscription_end: subscriptionEnd.toISOString(),
+              subscription_end: subscriptionEnd,
+              cancel_at_period_end: subscription.cancel_at_period_end || false,
               updated_at: new Date().toISOString()
             }, {
               onConflict: 'user_id'

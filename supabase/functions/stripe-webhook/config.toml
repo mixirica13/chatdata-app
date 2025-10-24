@@ -1,0 +1,2 @@
+# Configuração para permitir webhooks públicos sem autenticação JWT
+verify_jwt = false

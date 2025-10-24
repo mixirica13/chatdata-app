@@ -10,6 +10,7 @@ interface AuthState {
   isLoading: boolean;
   isSubscribed: boolean;
   subscriptionEnd: string | null;
+  cancelAtPeriodEnd: boolean;
   metaConnected: boolean;
   whatsappConnected: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -30,6 +31,7 @@ export const useAuth = create<AuthState>()(
       isLoading: true,
       isSubscribed: false,
       subscriptionEnd: null,
+      cancelAtPeriodEnd: false,
       metaConnected: false,
       whatsappConnected: false,
 
@@ -51,6 +53,7 @@ export const useAuth = create<AuthState>()(
               isAuthenticated: true,
               isSubscribed: profile?.subscribed || false,
               subscriptionEnd: profile?.subscription_end,
+              cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
               isLoading: false,
@@ -77,6 +80,7 @@ export const useAuth = create<AuthState>()(
                 isAuthenticated: true,
                 isSubscribed: profile?.subscribed || false,
                 subscriptionEnd: profile?.subscription_end,
+                cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
                 metaConnected: profile?.meta_connected || false,
                 whatsappConnected: profile?.whatsapp_connected || false,
               });
@@ -91,6 +95,7 @@ export const useAuth = create<AuthState>()(
                 isAuthenticated: false,
                 isSubscribed: false,
                 subscriptionEnd: null,
+                cancelAtPeriodEnd: false,
                 metaConnected: false,
                 whatsappConnected: false,
               });
@@ -129,6 +134,7 @@ export const useAuth = create<AuthState>()(
             isAuthenticated: true,
             isSubscribed: profile?.subscribed || false,
             subscriptionEnd: profile?.subscription_end,
+            cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
             metaConnected: profile?.meta_connected || false,
             whatsappConnected: profile?.whatsapp_connected || false,
           });
@@ -162,6 +168,7 @@ export const useAuth = create<AuthState>()(
           isAuthenticated: false,
           isSubscribed: false,
           subscriptionEnd: null,
+          cancelAtPeriodEnd: false,
         });
       },
 
@@ -187,6 +194,7 @@ export const useAuth = create<AuthState>()(
               profile,
               isSubscribed: profile?.subscribed || false,
               subscriptionEnd: profile?.subscription_end,
+              cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
             });
