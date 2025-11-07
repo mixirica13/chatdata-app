@@ -5,6 +5,12 @@ const API_VERSION = import.meta.env.VITE_META_API_VERSION || 'v24.0';
 
 export const initFacebookSDK = (): Promise<FacebookSDK> => {
   return new Promise((resolve, reject) => {
+    // Validate environment variables
+    if (!APP_ID) {
+      reject(new Error('VITE_META_APP_ID not configured in .env file'));
+      return;
+    }
+
     // Check if SDK is already loaded
     if (window.FB) {
       resolve(window.FB);
@@ -31,6 +37,8 @@ export const initFacebookSDK = (): Promise<FacebookSDK> => {
         xfbml: true,
         version: API_VERSION,
       };
+
+      console.log('Initializing Facebook SDK with:', { appId: APP_ID, version: API_VERSION });
 
       window.FB.init(initParams);
 
