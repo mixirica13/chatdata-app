@@ -1,17 +1,12 @@
-import { FacebookSDK, FacebookInitParams } from '@/types/facebook';
+import { FacebookSDK } from '@/types/facebook';
 
-const APP_ID = import.meta.env.VITE_META_APP_ID;
-const API_VERSION = import.meta.env.VITE_META_API_VERSION || 'v24.0';
-
+/**
+ * Get the Facebook SDK instance.
+ * The SDK is initialized inline in index.html, this function just waits for it to be ready.
+ */
 export const initFacebookSDK = (): Promise<FacebookSDK> => {
   return new Promise((resolve, reject) => {
-    // Validate environment variables
-    if (!APP_ID) {
-      reject(new Error('VITE_META_APP_ID not configured in .env file'));
-      return;
-    }
-
-    // Check if SDK is already loaded
+    // Check if SDK is already loaded and initialized
     if (window.FB) {
       resolve(window.FB);
       return;
@@ -19,42 +14,18 @@ export const initFacebookSDK = (): Promise<FacebookSDK> => {
 
     // Set timeout for SDK load failure
     const timeout = setTimeout(() => {
-      reject(new Error('Facebook SDK load timeout'));
+      reject(new Error('Facebook SDK load timeout - SDK not loaded after 10 seconds'));
     }, 10000);
 
-    // Wait for SDK to load
-    window.fbAsyncInit = () => {
-      clearTimeout(timeout);
-
-      if (!window.FB) {
-        reject(new Error('Facebook SDK failed to load'));
-        return;
+    // Wait for SDK to be initialized (fbAsyncInit is called in index.html)
+    const checkFB = setInterval(() => {
+      if (window.FB) {
+        clearTimeout(timeout);
+        clearInterval(checkFB);
+        console.log('Facebook SDK ready');
+        resolve(window.FB);
       }
-
-      const initParams: FacebookInitParams = {
-        appId: APP_ID,
-        cookie: true,
-        xfbml: true,
-        version: API_VERSION,
-      };
-
-      console.log('Initializing Facebook SDK with:', { appId: APP_ID, version: API_VERSION });
-
-      window.FB.init(initParams);
-
-      // Track page views (optional, for analytics)
-      if (window.FB.AppEvents) {
-        window.FB.AppEvents.logPageView();
-      }
-
-      resolve(window.FB);
-    };
-
-    // Check if script is already in DOM
-    if (document.getElementById('facebook-jssdk')) {
-      // Script already exists, just wait for it to call fbAsyncInit
-      return;
-    }
+    }, 100);
   });
 };
 
