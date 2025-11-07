@@ -11,8 +11,15 @@ export const initFacebookSDK = (): Promise<FacebookSDK> => {
       return;
     }
 
+    // Set timeout for SDK load failure
+    const timeout = setTimeout(() => {
+      reject(new Error('Facebook SDK load timeout'));
+    }, 10000);
+
     // Wait for SDK to load
     window.fbAsyncInit = () => {
+      clearTimeout(timeout);
+
       if (!window.FB) {
         reject(new Error('Facebook SDK failed to load'));
         return;
@@ -26,27 +33,20 @@ export const initFacebookSDK = (): Promise<FacebookSDK> => {
       };
 
       window.FB.init(initParams);
+
+      // Track page views (optional, for analytics)
+      if (window.FB.AppEvents) {
+        window.FB.AppEvents.logPageView();
+      }
+
       resolve(window.FB);
     };
 
     // Check if script is already in DOM
     if (document.getElementById('facebook-jssdk')) {
+      // Script already exists, just wait for it to call fbAsyncInit
       return;
     }
-
-    // If SDK script fails to load after timeout
-    const timeout = setTimeout(() => {
-      reject(new Error('Facebook SDK load timeout'));
-    }, 10000);
-
-    // Clear timeout when SDK loads
-    const originalFbAsyncInit = window.fbAsyncInit;
-    window.fbAsyncInit = () => {
-      clearTimeout(timeout);
-      if (originalFbAsyncInit) {
-        originalFbAsyncInit();
-      }
-    };
   });
 };
 
