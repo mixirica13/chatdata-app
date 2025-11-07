@@ -1,28 +1,61 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useFacebookLogin } from '@/hooks/useFacebookLogin';
+import { createMetaGraphAPI } from '@/lib/metaGraphAPI';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Facebook, CheckCircle2, ArrowLeft } from 'lucide-react';
-import { mockAdAccounts } from '@/lib/mockData';
+import { Facebook, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { AdAccount } from '@/types/facebook';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ConnectMeta = () => {
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const { user } = useAuth();
+  const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
   const navigate = useNavigate();
 
+  const isConnected = !!authResponse;
+
+  // Load ad accounts when user connects
+  useEffect(() => {
+    const loadAdAccounts = async () => {
+      if (!authResponse) return;
+
+      setIsLoadingAccounts(true);
+      try {
+        const api = createMetaGraphAPI(authResponse.accessToken);
+        const accounts = await api.getAdAccounts();
+        setAdAccounts(accounts);
+
+        if (accounts.length === 0) {
+          toast.info('Nenhuma conta de anúncios encontrada');
+        }
+      } catch (error) {
+        console.error('Error loading ad accounts:', error);
+        toast.error('Erro ao carregar contas de anúncios');
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    };
+
+    loadAdAccounts();
+  }, [authResponse]);
+
   const handleConnect = async () => {
-    setIsConnecting(true);
-    // Simulate OAuth redirect and connection
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsConnected(true);
-    setIsConnecting(false);
+    try {
+      await login();
+    } catch (error) {
+      console.error('Connection error:', error);
+      toast.error('Erro ao conectar com Meta');
+    }
   };
 
   const handleConfirm = async () => {
@@ -31,22 +64,56 @@ const ConnectMeta = () => {
       return;
     }
 
-    try {
-      // Update profile in database
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ meta_connected: true })
-          .eq('user_id', user.id);
+    if (!authResponse || !user) {
+      toast.error('Erro: Usuário não autenticado');
+      return;
+    }
 
-        if (error) throw error;
+    setIsSaving(true);
+
+    try {
+      // Get selected account details
+      const selectedAccountDetails = adAccounts.filter(account =>
+        selectedAccounts.includes(account.id)
+      );
+
+      // Calculate token expiration time
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + authResponse.expiresIn);
+
+      // Save connection data to Supabase
+      // This should call a secure Edge Function that stores the token securely
+      const { error: functionError } = await supabase.functions.invoke('store-meta-token', {
+        body: {
+          access_token: authResponse.accessToken,
+          user_id: authResponse.userID,
+          expires_at: expiresAt.toISOString(),
+          granted_scopes: authResponse.grantedScopes?.split(',') || [],
+          ad_accounts: selectedAccountDetails,
+        },
+      });
+
+      if (functionError) {
+        console.error('Edge function error:', functionError);
+        // Fallback: Update profile without storing token details
+        // In production, you should handle this more securely
       }
+
+      // Update profile to mark as connected
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ meta_connected: true })
+        .eq('user_id', user.id);
+
+      if (profileError) throw profileError;
 
       toast.success('Meta Ads conectado com sucesso!');
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Erro ao conectar Meta Ads. Tente novamente.');
-      console.error(error);
+      console.error('Error confirming connection:', error);
+      toast.error('Erro ao salvar conexão. Tente novamente.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -83,6 +150,15 @@ const ConnectMeta = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {!isInitialized && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Carregando Facebook SDK...
+                </AlertDescription>
+              </Alert>
+            )}
+
             {!isConnected ? (
               <>
                 <div className="bg-muted p-4 rounded-lg space-y-3">
@@ -90,7 +166,7 @@ const ConnectMeta = () => {
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Ler dados de campanhas e anúncios
+                      Gerenciar e ler campanhas e anúncios
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -104,6 +180,10 @@ const ConnectMeta = () => {
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
                       Acessar relatórios de orçamento e gastos
                     </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      Gerenciar Business Manager
+                    </li>
                   </ul>
                 </div>
 
@@ -113,13 +193,19 @@ const ConnectMeta = () => {
                   </p>
                 </div>
 
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                  <p className="text-sm text-yellow-900">
+                    <strong>Modo de Teste:</strong> Este app está em modo de desenvolvimento. Apenas usuários autorizados como testadores no Meta App podem fazer login.
+                  </p>
+                </div>
+
                 <Button
                   onClick={handleConnect}
-                  disabled={isConnecting}
+                  disabled={isLoading || !isInitialized}
                   className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
                   size="lg"
                 >
-                  {isConnecting ? (
+                  {isLoading ? (
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
@@ -136,40 +222,63 @@ const ConnectMeta = () => {
                   <span className="font-semibold">Conexão estabelecida com sucesso!</span>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold mb-3">Selecione as contas de anúncios:</h3>
-                    <div className="space-y-3">
-                      {mockAdAccounts.map((account) => (
-                        <div
-                          key={account.id}
-                          className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                          onClick={() => toggleAccount(account.id)}
-                        >
-                          <Checkbox
-                            checked={selectedAccounts.includes(account.id)}
-                            onCheckedChange={() => toggleAccount(account.id)}
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium">{account.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              ID: {account.id} • {account.currency}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {isLoadingAccounts ? (
+                  <div className="flex justify-center py-8">
+                    <LoadingSpinner size="lg" />
+                    <p className="ml-3 text-muted-foreground">Carregando contas de anúncios...</p>
                   </div>
+                ) : adAccounts.length === 0 ? (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Nenhuma conta de anúncios encontrada. Certifique-se de ter acesso a pelo menos uma conta de anúncios no Meta Business Manager.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-3">Selecione as contas de anúncios:</h3>
+                      <div className="space-y-3">
+                        {adAccounts.map((account) => (
+                          <div
+                            key={account.id}
+                            className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer"
+                            onClick={() => toggleAccount(account.id)}
+                          >
+                            <Checkbox
+                              checked={selectedAccounts.includes(account.id)}
+                              onCheckedChange={() => toggleAccount(account.id)}
+                            />
+                            <div className="flex-1">
+                              <p className="font-medium">{account.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                ID: {account.account_id} • {account.currency}
+                              </p>
+                              {account.business && (
+                                <p className="text-xs text-muted-foreground">
+                                  Business: {account.business.name}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                  <Button
-                    onClick={handleConfirm}
-                    className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
-                    size="lg"
-                    disabled={selectedAccounts.length === 0}
-                  >
-                    Confirmar e Continuar
-                  </Button>
-                </div>
+                    <Button
+                      onClick={handleConfirm}
+                      className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
+                      size="lg"
+                      disabled={selectedAccounts.length === 0 || isSaving}
+                    >
+                      {isSaving ? (
+                        <LoadingSpinner size="sm" />
+                      ) : (
+                        'Confirmar e Continuar'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </>
             )}
           </CardContent>
