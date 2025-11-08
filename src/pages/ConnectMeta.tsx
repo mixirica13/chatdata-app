@@ -72,40 +72,29 @@ const ConnectMeta = () => {
     setIsSaving(true);
 
     try {
-      // Get selected account details
-      const selectedAccountDetails = adAccounts.filter(account =>
-        selectedAccounts.includes(account.id)
-      );
+      console.log('Exchanging Facebook token for long-lived token...');
 
-      // Calculate token expiration time
-      const expiresAt = new Date();
-      expiresAt.setSeconds(expiresAt.getSeconds() + authResponse.expiresIn);
+      // Extract account IDs from selected accounts
+      const accountIds = selectedAccounts.map(id => {
+        const account = adAccounts.find(acc => acc.id === id);
+        return account?.account_id || id.replace('act_', '');
+      });
 
-      // Save connection data to Supabase
-      // This should call a secure Edge Function that stores the token securely
-      const { error: functionError } = await supabase.functions.invoke('store-meta-token', {
+      // Exchange short-lived token for long-lived token via Edge Function
+      const { data, error: exchangeError } = await supabase.functions.invoke('exchange-facebook-token', {
         body: {
-          access_token: authResponse.accessToken,
-          user_id: authResponse.userID,
-          expires_at: expiresAt.toISOString(),
-          granted_scopes: authResponse.grantedScopes?.split(',') || [],
-          ad_accounts: selectedAccountDetails,
+          short_lived_token: authResponse.accessToken,
+          ad_account_ids: accountIds,
+          granted_permissions: authResponse.grantedScopes?.split(',') || [],
         },
       });
 
-      if (functionError) {
-        console.error('Edge function error:', functionError);
-        // Fallback: Update profile without storing token details
-        // In production, you should handle this more securely
+      if (exchangeError) {
+        console.error('Token exchange error:', exchangeError);
+        throw new Error('Falha ao trocar token do Facebook');
       }
 
-      // Update profile to mark as connected
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ meta_connected: true })
-        .eq('user_id', user.id);
-
-      if (profileError) throw profileError;
+      console.log('Token exchanged successfully:', data);
 
       toast.success('Meta Ads conectado com sucesso!');
       navigate('/dashboard');
