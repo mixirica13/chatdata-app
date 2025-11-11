@@ -34,6 +34,7 @@ interface UseMetaDataResult {
   error: string | null;
   setSelectedAccount: (account: AdAccount) => void;
   refreshData: () => Promise<void>;
+  fetchInsightsWithDateRange: (startDate: string, endDate: string) => Promise<void>;
 }
 
 export const useMetaData = (): UseMetaDataResult => {
@@ -43,6 +44,7 @@ export const useMetaData = (): UseMetaDataResult => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
 
   // Fetch Meta connection and access token
   useEffect(() => {
@@ -127,20 +129,18 @@ export const useMetaData = (): UseMetaDataResult => {
 
     const fetchInsights = async () => {
       try {
+        setError(null);
         const api = createMetaGraphAPI(accessToken);
 
-        // Try different time periods until we find data
-        const periods = ['last_7d', 'last_14d', 'last_30d', 'last_90d'];
-        let foundData = false;
+        let url = `https://graph.facebook.com/v24.0/${selectedAccount.id}/insights?` +
+          `fields=impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions&` +
+          `access_token=${accessToken}`;
 
-        for (const period of periods) {
-          const response = await fetch(
-            `https://graph.facebook.com/v24.0/${selectedAccount.id}/insights?` +
-            `fields=impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions&` +
-            `date_preset=${period}&` +
-            `access_token=${accessToken}`
-          );
+        // Use custom date range if available, otherwise try preset periods
+        if (dateRange) {
+          url += `&time_range=${encodeURIComponent(JSON.stringify({ since: dateRange.start, until: dateRange.end }))}`;
 
+          const response = await fetch(url);
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error?.message || 'Erro ao buscar insights');
@@ -150,8 +150,6 @@ export const useMetaData = (): UseMetaDataResult => {
 
           if (data.data && data.data.length > 0) {
             const insightData = data.data[0];
-
-            // Process actions/conversions
             const actions = insightData.actions || [];
             const conversions = actions.reduce((acc: any, action: any) => {
               acc[action.action_type] = parseInt(action.value);
@@ -174,15 +172,58 @@ export const useMetaData = (): UseMetaDataResult => {
             };
 
             setInsights(processedInsights);
-            foundData = true;
-            break; // Found data, stop trying other periods
+          } else {
+            setInsights(null);
+            setError('Nenhum dado disponível para o período selecionado');
           }
-        }
+        } else {
+          // Try different time periods until we find data
+          const periods = ['last_7d', 'last_14d', 'last_30d', 'last_90d'];
+          let foundData = false;
 
-        if (!foundData) {
-          // No insights data available for any period
-          setInsights(null);
-          setError('Esta conta não possui dados de anúncios nos últimos 90 dias');
+          for (const period of periods) {
+            const response = await fetch(url + `&date_preset=${period}`);
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error?.message || 'Erro ao buscar insights');
+            }
+
+            const data = await response.json();
+
+            if (data.data && data.data.length > 0) {
+              const insightData = data.data[0];
+              const actions = insightData.actions || [];
+              const conversions = actions.reduce((acc: any, action: any) => {
+                acc[action.action_type] = parseInt(action.value);
+                return acc;
+              }, {});
+
+              const processedInsights: CampaignInsights = {
+                campaign_id: selectedAccount.id,
+                campaign_name: selectedAccount.name,
+                impressions: parseInt(insightData.impressions || '0'),
+                clicks: parseInt(insightData.clicks || '0'),
+                spend: parseFloat(insightData.spend || '0'),
+                ctr: parseFloat(insightData.ctr || '0'),
+                cpc: parseFloat(insightData.cpc || '0'),
+                reach: parseInt(insightData.reach || '0'),
+                frequency: parseFloat(insightData.frequency || '0'),
+                conversions,
+                date_start: insightData.date_start,
+                date_stop: insightData.date_stop,
+              };
+
+              setInsights(processedInsights);
+              foundData = true;
+              break;
+            }
+          }
+
+          if (!foundData) {
+            setInsights(null);
+            setError('Esta conta não possui dados de anúncios nos últimos 90 dias');
+          }
         }
       } catch (err: any) {
         console.error('Error fetching insights:', err);
@@ -191,7 +232,7 @@ export const useMetaData = (): UseMetaDataResult => {
     };
 
     fetchInsights();
-  }, [accessToken, selectedAccount]);
+  }, [accessToken, selectedAccount, dateRange]);
 
   const refreshData = async () => {
     if (!accessToken) return;
@@ -222,6 +263,10 @@ export const useMetaData = (): UseMetaDataResult => {
     }
   };
 
+  const fetchInsightsWithDateRange = async (startDate: string, endDate: string) => {
+    setDateRange({ start: startDate, end: endDate });
+  };
+
   return {
     adAccounts,
     selectedAccount,
@@ -230,5 +275,6 @@ export const useMetaData = (): UseMetaDataResult => {
     error,
     setSelectedAccount,
     refreshData,
+    fetchInsightsWithDateRange,
   };
 };

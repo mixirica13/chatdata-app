@@ -24,7 +24,7 @@ export const BottomNav = () => {
     },
     {
       icon: Settings,
-      label: 'Configurações',
+      label: 'Config.',
       path: '/settings',
     },
   ];
@@ -39,7 +39,7 @@ export const BottomNav = () => {
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-[#46CCC6]/10 via-transparent to-transparent" />
-          <div className="relative flex justify-around items-center px-6 py-4">
+          <div className="relative flex justify-around items-center py-4" style={{ paddingLeft: '0.8rem', paddingRight: '0.8rem' }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -49,9 +49,7 @@ export const BottomNav = () => {
                   key={item.path}
                   onClick={() => navigate(item.path)}
                   className={cn(
-                    'flex flex-col items-center gap-1 transition-all duration-300 py-2 rounded-2xl',
-                    // Padding horizontal menor para o item "Configurações"
-                    item.path === '/settings' ? 'px-3' : 'px-6',
+                    'flex flex-col items-center gap-1 transition-all duration-300 py-2 px-2 rounded-2xl min-w-0 flex-1',
                     isActive
                       ? 'text-[#46CCC6] bg-[#46CCC6]/10'
                       : 'text-white/60 hover:text-white hover:bg-white/5'
@@ -59,13 +57,13 @@ export const BottomNav = () => {
                 >
                   <Icon
                     className={cn(
-                      'transition-all duration-300',
+                      'transition-all duration-300 flex-shrink-0',
                       isActive ? 'w-6 h-6' : 'w-5 h-5'
                     )}
                   />
                   <span
                     className={cn(
-                      'text-xs font-medium transition-all duration-300',
+                      'text-xs font-medium transition-all duration-300 text-center truncate w-full',
                       isActive ? 'opacity-100' : 'opacity-60'
                     )}
                   >

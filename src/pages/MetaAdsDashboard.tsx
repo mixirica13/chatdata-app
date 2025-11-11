@@ -25,15 +25,29 @@ import {
   RefreshCw,
   Facebook,
   ChevronRight,
-  Activity
+  Activity,
+  Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MetaAdsDashboard = () => {
   const navigate = useNavigate();
   const { metaConnected } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 640px)');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [selectedPreset, setSelectedPreset] = useState<string>('auto');
 
   // Use custom hook for Meta data
   const {
@@ -43,7 +57,8 @@ const MetaAdsDashboard = () => {
     isLoading,
     error,
     setSelectedAccount,
-    refreshData
+    refreshData,
+    fetchInsightsWithDateRange
   } = useMetaData();
 
   // Redirect if not connected
@@ -77,6 +92,91 @@ const MetaAdsDashboard = () => {
 
   const formatNumber = (value: number) => {
     return new Intl.NumberFormat('pt-BR').format(value);
+  };
+
+  const handlePresetChange = (preset: string) => {
+    setSelectedPreset(preset);
+    setCustomDateRange({ from: undefined, to: undefined });
+
+    if (preset !== 'auto' && preset !== 'custom') {
+      const today = new Date();
+      const end = format(today, 'yyyy-MM-dd');
+      let start = '';
+
+      switch (preset) {
+        case 'today':
+          start = end;
+          break;
+        case 'yesterday':
+          const yesterday = new Date(today);
+          yesterday.setDate(yesterday.getDate() - 1);
+          start = format(yesterday, 'yyyy-MM-dd');
+          break;
+        case 'last_7d':
+          const last7 = new Date(today);
+          last7.setDate(last7.getDate() - 7);
+          start = format(last7, 'yyyy-MM-dd');
+          break;
+        case 'last_14d':
+          const last14 = new Date(today);
+          last14.setDate(last14.getDate() - 14);
+          start = format(last14, 'yyyy-MM-dd');
+          break;
+        case 'last_30d':
+          const last30 = new Date(today);
+          last30.setDate(last30.getDate() - 30);
+          start = format(last30, 'yyyy-MM-dd');
+          break;
+        case 'last_90d':
+          const last90 = new Date(today);
+          last90.setDate(last90.getDate() - 90);
+          start = format(last90, 'yyyy-MM-dd');
+          break;
+        case 'this_month':
+          start = format(new Date(today.getFullYear(), today.getMonth(), 1), 'yyyy-MM-dd');
+          break;
+        case 'last_month':
+          const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+          start = format(lastMonth, 'yyyy-MM-dd');
+          fetchInsightsWithDateRange(start, format(lastMonthEnd, 'yyyy-MM-dd'));
+          return;
+      }
+
+      fetchInsightsWithDateRange(start, end);
+    }
+  };
+
+  const handleCustomDateApply = () => {
+    if (customDateRange.from && customDateRange.to) {
+      const start = format(customDateRange.from, 'yyyy-MM-dd');
+      const end = format(customDateRange.to, 'yyyy-MM-dd');
+      fetchInsightsWithDateRange(start, end);
+      setDateRangeOpen(false);
+      toast.success('Período personalizado aplicado');
+    } else {
+      toast.error('Selecione uma data de início e fim');
+    }
+  };
+
+  const getDateRangeLabel = () => {
+    if (selectedPreset === 'custom' && customDateRange.from && customDateRange.to) {
+      return `${format(customDateRange.from, 'dd/MM/yyyy', { locale: ptBR })} - ${format(customDateRange.to, 'dd/MM/yyyy', { locale: ptBR })}`;
+    }
+
+    const presetLabels: Record<string, string> = {
+      auto: 'Automático',
+      today: 'Hoje',
+      yesterday: 'Ontem',
+      last_7d: 'Últimos 7 dias',
+      last_14d: 'Últimos 14 dias',
+      last_30d: 'Últimos 30 dias',
+      last_90d: 'Últimos 90 dias',
+      this_month: 'Este mês',
+      last_month: 'Mês passado',
+    };
+
+    return presetLabels[selectedPreset] || 'Selecionar período';
   };
 
   if (isLoading) {
@@ -181,6 +281,235 @@ const MetaAdsDashboard = () => {
           </LiquidGlass>
         )}
 
+        {/* Date Range Picker */}
+        {adAccounts.length > 0 && selectedAccount && (
+          <LiquidGlass className="p-1">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/10 rounded-full p-2">
+                  <Calendar className="h-5 w-5 text-[#46CCC6]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-400 mb-1">Período</p>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal bg-black/40 border-white/10 text-white hover:bg-white/10 hover:text-white"
+                    onClick={() => setDateRangeOpen(true)}
+                  >
+                    {getDateRangeLabel()}
+                  </Button>
+
+                  {/* Mobile: Dialog */}
+                  {isMobile ? (
+                    <Dialog open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
+                      <DialogContent className="bg-black border-white/10 max-w-[90vw]">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Selecionar Período</DialogTitle>
+                        </DialogHeader>
+                      <div className="flex flex-col sm:flex-row">
+                        {/* Presets */}
+                        <div className="border-b sm:border-b-0 sm:border-r border-white/10 p-3">
+                          <div className="space-y-1">
+                            {[
+                              { value: 'custom', label: 'Personalizado' },
+                              { value: 'auto', label: 'Automático' },
+                              { value: 'today', label: 'Hoje' },
+                              { value: 'yesterday', label: 'Ontem' },
+                              { value: 'last_7d', label: 'Últimos 7 dias' },
+                              { value: 'last_14d', label: 'Últimos 14 dias' },
+                              { value: 'last_30d', label: 'Últimos 30 dias' },
+                              { value: 'last_90d', label: 'Últimos 90 dias' },
+                              { value: 'this_month', label: 'Este mês' },
+                              { value: 'last_month', label: 'Mês passado' },
+                            ].map((preset) => (
+                              <Button
+                                key={preset.value}
+                                variant="ghost"
+                                className={cn(
+                                  'w-full justify-start text-sm text-white hover:bg-white/10',
+                                  selectedPreset === preset.value && 'bg-[#46CCC6]/20 text-[#46CCC6]'
+                                )}
+                                onClick={() => {
+                                  if (preset.value === 'custom') {
+                                    setSelectedPreset('custom');
+                                  } else {
+                                    handlePresetChange(preset.value);
+                                    if (preset.value !== 'auto') {
+                                      setDateRangeOpen(false);
+                                    }
+                                  }
+                                }}
+                              >
+                                {preset.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Custom Date Range Calendar */}
+                        {selectedPreset === 'custom' && (
+                          <div className="p-3">
+                            <CalendarComponent
+                              mode="range"
+                              selected={customDateRange as any}
+                              onSelect={(range: any) => setCustomDateRange(range || { from: undefined, to: undefined })}
+                              numberOfMonths={1}
+                              locale={ptBR}
+                              className="text-white"
+                              modifiers={{
+                                selected: customDateRange.from || customDateRange.to ? false : undefined,
+                              }}
+                              modifiersClassNames={{
+                                selected: 'bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90',
+                                range_middle: 'bg-[#46CCC6]/20 text-white',
+                                range_start: 'bg-[#46CCC6] text-black',
+                                range_end: 'bg-[#46CCC6] text-black',
+                                today: customDateRange.from || customDateRange.to ? 'bg-transparent text-white font-bold' : 'bg-white/10 text-white',
+                              }}
+                            />
+                            <div className="mt-3 space-y-2">
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
+                                  onClick={() => setDateRangeOpen(false)}
+                                >
+                                  Fechar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90"
+                                  onClick={handleCustomDateApply}
+                                >
+                                  Aplicar
+                                </Button>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20"
+                                onClick={() => {
+                                  setCustomDateRange({ from: undefined, to: undefined });
+                                  toast.success('Calendário limpo');
+                                }}
+                              >
+                                Limpar Calendário
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  /* Desktop: Popover */
+                  <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
+                    <PopoverTrigger className="hidden" />
+                    <PopoverContent className="w-auto p-0 bg-black border-white/10" align="start">
+                      <div className="flex flex-col sm:flex-row">
+                        {/* Presets */}
+                        <div className="border-b sm:border-b-0 sm:border-r border-white/10 p-3">
+                          <div className="space-y-1">
+                            {[
+                              { value: 'custom', label: 'Personalizado' },
+                              { value: 'auto', label: 'Automático' },
+                              { value: 'today', label: 'Hoje' },
+                              { value: 'yesterday', label: 'Ontem' },
+                              { value: 'last_7d', label: 'Últimos 7 dias' },
+                              { value: 'last_14d', label: 'Últimos 14 dias' },
+                              { value: 'last_30d', label: 'Últimos 30 dias' },
+                              { value: 'last_90d', label: 'Últimos 90 dias' },
+                              { value: 'this_month', label: 'Este mês' },
+                              { value: 'last_month', label: 'Mês passado' },
+                            ].map((preset) => (
+                              <Button
+                                key={preset.value}
+                                variant="ghost"
+                                className={cn(
+                                  'w-full justify-start text-sm text-white hover:bg-white/10',
+                                  selectedPreset === preset.value && 'bg-[#46CCC6]/20 text-[#46CCC6]'
+                                )}
+                                onClick={() => {
+                                  if (preset.value === 'custom') {
+                                    setSelectedPreset('custom');
+                                  } else {
+                                    handlePresetChange(preset.value);
+                                    if (preset.value !== 'auto') {
+                                      setDateRangeOpen(false);
+                                    }
+                                  }
+                                }}
+                              >
+                                {preset.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Custom Date Range Calendar */}
+                        {selectedPreset === 'custom' && (
+                          <div className="p-3">
+                            <CalendarComponent
+                              mode="range"
+                              selected={customDateRange as any}
+                              onSelect={(range: any) => setCustomDateRange(range || { from: undefined, to: undefined })}
+                              numberOfMonths={1}
+                              locale={ptBR}
+                              className="text-white"
+                              modifiers={{
+                                selected: customDateRange.from || customDateRange.to ? false : undefined,
+                              }}
+                              modifiersClassNames={{
+                                selected: 'bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90',
+                                range_middle: 'bg-[#46CCC6]/20 text-white',
+                                range_start: 'bg-[#46CCC6] text-black',
+                                range_end: 'bg-[#46CCC6] text-black',
+                                today: customDateRange.from || customDateRange.to ? 'bg-transparent text-white font-bold' : 'bg-white/10 text-white',
+                              }}
+                            />
+                            <div className="mt-3 space-y-2">
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
+                                  onClick={() => setDateRangeOpen(false)}
+                                >
+                                  Fechar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="flex-1 bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90"
+                                  onClick={handleCustomDateApply}
+                                >
+                                  Aplicar
+                                </Button>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20"
+                                onClick={() => {
+                                  setCustomDateRange({ from: undefined, to: undefined });
+                                  toast.success('Calendário limpo');
+                                }}
+                              >
+                                Limpar Calendário
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+                </div>
+              </div>
+            </div>
+          </LiquidGlass>
+        )}
+
         {/* No accounts */}
         {adAccounts.length === 0 && (
           <LiquidGlass className="p-1">
@@ -210,11 +539,6 @@ const MetaAdsDashboard = () => {
               <Activity className="h-5 w-5 text-[#46CCC6]" />
               <h3 className="text-lg font-semibold">
                 {insights.campaign_name}
-                {insights.date_start && insights.date_stop && (
-                  <span className="text-sm text-gray-400 ml-2">
-                    ({new Date(insights.date_start).toLocaleDateString('pt-BR')} - {new Date(insights.date_stop).toLocaleDateString('pt-BR')})
-                  </span>
-                )}
               </h3>
             </div>
 
@@ -323,8 +647,8 @@ const MetaAdsDashboard = () => {
               </LiquidGlass>
             </div>
 
-            {/* Account Balance */}
-            {selectedAccount?.balance && (
+            {/* Account Balance - Hidden for now */}
+            {false && selectedAccount?.balance && (
               <LiquidGlass className="p-1">
                 <Card className="bg-gradient-to-br from-white/10 to-white/5 border-white/20">
                   <CardHeader>
