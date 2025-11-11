@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { createMetaGraphAPI } from '@/lib/metaGraphAPI';
+import { useMetaData } from '@/hooks/useMetaData';
 import { BottomNav } from '@/components/BottomNav';
 import { Logo } from '@/components/Logo';
 import { LiquidGlass } from '@/components/LiquidGlass';
@@ -20,29 +20,24 @@ import {
   ChevronRight,
   Activity
 } from 'lucide-react';
-import { AdAccount } from '@/types/facebook';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-
-interface CampaignInsights {
-  campaign_id: string;
-  campaign_name: string;
-  impressions: number;
-  clicks: number;
-  spend: number;
-  ctr: number;
-  cpc: number;
-  reach: number;
-}
 
 const MetaAdsDashboard = () => {
   const navigate = useNavigate();
   const { metaConnected } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<AdAccount | null>(null);
-  const [insights, setInsights] = useState<CampaignInsights | null>(null);
+
+  // Use custom hook for Meta data
+  const {
+    adAccounts,
+    selectedAccount,
+    insights,
+    isLoading,
+    error,
+    setSelectedAccount,
+    refreshData
+  } = useMetaData();
 
   // Redirect if not connected
   useEffect(() => {
@@ -52,78 +47,16 @@ const MetaAdsDashboard = () => {
     }
   }, [metaConnected, navigate]);
 
-  // Load ad accounts on mount
+  // Show error toast if any
   useEffect(() => {
-    if (metaConnected) {
-      loadAdAccounts();
+    if (error) {
+      toast.error(error);
     }
-  }, [metaConnected]);
-
-  const loadAdAccounts = async () => {
-    try {
-      setIsLoading(true);
-
-      // Get access token from auth context (you'll need to expose this)
-      // For now, we'll use a placeholder
-      // const api = createMetaGraphAPI(accessToken);
-      // const accounts = await api.getAdAccounts();
-
-      // Mock data for demonstration
-      const mockAccounts: AdAccount[] = [
-        {
-          id: 'act_123456789',
-          account_id: '123456789',
-          name: 'Conta Principal',
-          currency: 'BRL',
-          account_status: 1,
-          business: {
-            id: 'biz_123',
-            name: 'Meu Negócio'
-          },
-          timezone_name: 'America/Sao_Paulo',
-          amount_spent: '15420.50',
-          balance: '5000.00'
-        }
-      ];
-
-      setAdAccounts(mockAccounts);
-
-      if (mockAccounts.length > 0) {
-        setSelectedAccount(mockAccounts[0]);
-        loadInsights(mockAccounts[0]);
-      }
-    } catch (error) {
-      console.error('Error loading ad accounts:', error);
-      toast.error('Erro ao carregar contas de anúncios');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadInsights = async (account: AdAccount) => {
-    try {
-      // Mock insights data
-      const mockInsights: CampaignInsights = {
-        campaign_id: 'campaign_123',
-        campaign_name: 'Campanha Black Friday 2024',
-        impressions: 125430,
-        clicks: 4520,
-        spend: 8542.75,
-        ctr: 3.6,
-        cpc: 1.89,
-        reach: 89320
-      };
-
-      setInsights(mockInsights);
-    } catch (error) {
-      console.error('Error loading insights:', error);
-      toast.error('Erro ao carregar métricas');
-    }
-  };
+  }, [error]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadAdAccounts();
+    await refreshData();
     setIsRefreshing(false);
     toast.success('Dados atualizados!');
   };
@@ -241,10 +174,17 @@ const MetaAdsDashboard = () => {
         {/* Metrics Grid */}
         {insights && (
           <>
-            {/* Campaign Name */}
+            {/* Campaign/Account Name */}
             <div className="flex items-center gap-2 text-white px-1">
               <Activity className="h-5 w-5 text-[#46CCC6]" />
-              <h3 className="text-lg font-semibold">{insights.campaign_name}</h3>
+              <h3 className="text-lg font-semibold">
+                {insights.campaign_name}
+                {insights.date_start && insights.date_stop && (
+                  <span className="text-sm text-gray-400 ml-2">
+                    ({new Date(insights.date_start).toLocaleDateString('pt-BR')} - {new Date(insights.date_stop).toLocaleDateString('pt-BR')})
+                  </span>
+                )}
+              </h3>
             </div>
 
             {/* Primary Metrics */}
