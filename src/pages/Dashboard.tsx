@@ -5,7 +5,8 @@ import { LiquidGlass } from '@/components/LiquidGlass';
 import { BottomNav } from '@/components/BottomNav';
 import { Logo } from '@/components/Logo';
 import { WhatsAppIcon } from '@/components/WhatsAppIcon';
-import { Facebook, MessageCircle } from 'lucide-react';
+import { Facebook, MessageCircle, BarChart3, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +52,35 @@ const Dashboard = () => {
               onDisconnect={disconnectMeta}
             />
           </LiquidGlass>
+
+          {/* Dashboard de Métricas */}
+          {metaConnected && (
+            <LiquidGlass className="p-1">
+              <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="bg-purple-500 rounded-full p-3">
+                    <BarChart3 className="h-8 w-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-white mb-1">
+                      Dashboard de Métricas
+                    </h3>
+                    <p className="text-sm text-gray-300">
+                      Visualize suas campanhas e performance
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => navigate('/meta-ads')}
+                  className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20"
+                >
+                  Ver Métricas
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </LiquidGlass>
+          )}
 
           <LiquidGlass className="p-1">
             <ConnectionCard

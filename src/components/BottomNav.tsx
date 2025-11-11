@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, CreditCard, Settings } from 'lucide-react';
+import { Home, CreditCard, Settings, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const BottomNav = () => {
@@ -11,6 +11,11 @@ export const BottomNav = () => {
       icon: Home,
       label: 'Home',
       path: '/dashboard',
+    },
+    {
+      icon: BarChart3,
+      label: 'Métricas',
+      path: '/meta-ads',
     },
     {
       icon: CreditCard,
@@ -44,7 +49,9 @@ export const BottomNav = () => {
                   key={item.path}
                   onClick={() => navigate(item.path)}
                   className={cn(
-                    'flex flex-col items-center gap-1 transition-all duration-300 px-6 py-2 rounded-2xl',
+                    'flex flex-col items-center gap-1 transition-all duration-300 py-2 rounded-2xl',
+                    // Padding horizontal menor para o item "Configurações"
+                    item.path === '/settings' ? 'px-3' : 'px-6',
                     isActive
                       ? 'text-[#46CCC6] bg-[#46CCC6]/10'
                       : 'text-white/60 hover:text-white hover:bg-white/5'

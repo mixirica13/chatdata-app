@@ -11,6 +11,7 @@ import ConfirmEmail from "./pages/ConfirmEmail";
 import EmailConfirmed from "./pages/EmailConfirmed";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import MetaAdsDashboard from "./pages/MetaAdsDashboard";
 import ConnectMeta from "./pages/ConnectMeta";
 import ConnectWhatsApp from "./pages/ConnectWhatsApp";
 import Settings from "./pages/Settings";
@@ -79,6 +80,7 @@ const App = () => {
             <Route path="/email-confirmed" element={<EmailConfirmed />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/meta-ads" element={<ProtectedRoute><MetaAdsDashboard /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             <Route path="/connect/meta" element={<ProtectedRoute><ConnectMeta /></ProtectedRoute>} />
             <Route path="/connect/whatsapp" element={<ProtectedRoute><ConnectWhatsApp /></ProtectedRoute>} />
