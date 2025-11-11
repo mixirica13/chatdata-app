@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { createMetaGraphAPI } from '@/lib/metaGraphAPI';
 import { AdAccount } from '@/types/facebook';
 
-interface MetaConnection {
+interface MetaCredential {
   access_token: string;
-  meta_user_id: string;
+  token_type: string;
   expires_at: string;
-  granted_scopes: string[];
+  granted_permissions: string[];
+  ad_account_ids: string[];
 }
 
 interface CampaignInsights {
@@ -55,28 +56,30 @@ export const useMetaData = (): UseMetaDataResult => {
           return;
         }
 
-        // Fetch Meta connection with access token
-        const { data: connection, error: connectionError } = await supabase
-          .from('meta_connections')
-          .select('access_token, meta_user_id, expires_at, granted_scopes')
+        // Fetch Meta credentials with access token
+        const { data: credential, error: credentialError } = await supabase
+          .from('meta_credentials')
+          .select('access_token, token_type, expires_at, granted_permissions, ad_account_ids')
           .eq('user_id', user.id)
           .single();
 
-        if (connectionError || !connection) {
+        if (credentialError || !credential) {
           setError('Conexão Meta não encontrada');
           setIsLoading(false);
           return;
         }
 
         // Check if token is expired
-        const expiresAt = new Date(connection.expires_at);
-        if (expiresAt < new Date()) {
-          setError('Token expirado. Reconecte sua conta Meta.');
-          setIsLoading(false);
-          return;
+        if (credential.expires_at) {
+          const expiresAt = new Date(credential.expires_at);
+          if (expiresAt < new Date()) {
+            setError('Token expirado. Reconecte sua conta Meta.');
+            setIsLoading(false);
+            return;
+          }
         }
 
-        setAccessToken(connection.access_token);
+        setAccessToken(credential.access_token);
 
       } catch (err) {
         console.error('Error fetching Meta connection:', err);
@@ -97,62 +100,14 @@ export const useMetaData = (): UseMetaDataResult => {
         setIsLoading(true);
         setError(null);
 
-        // Check if we have cached ad accounts in database
-        const { data: { user } } = await supabase.auth.getUser();
+        // Fetch from Meta API (no caching for now)
+        const api = createMetaGraphAPI(accessToken);
+        const accounts = await api.getAdAccounts();
 
-        if (!user) return;
+        setAdAccounts(accounts);
 
-        const { data: cachedAccounts, error: cacheError } = await supabase
-          .from('meta_ad_accounts')
-          .select('*')
-          .eq('user_id', user.id);
-
-        if (cachedAccounts && cachedAccounts.length > 0) {
-          // Use cached accounts
-          const accounts: AdAccount[] = cachedAccounts.map(acc => ({
-            id: acc.ad_account_id,
-            account_id: acc.account_id,
-            name: acc.name,
-            currency: acc.currency,
-            business: acc.business_id ? {
-              id: acc.business_id,
-              name: acc.business_name || ''
-            } : undefined
-          }));
-
-          setAdAccounts(accounts);
-
-          if (accounts.length > 0) {
-            setSelectedAccount(accounts[0]);
-          }
-        } else {
-          // Fetch from Meta API
-          const api = createMetaGraphAPI(accessToken);
-          const accounts = await api.getAdAccounts();
-
-          setAdAccounts(accounts);
-
-          if (accounts.length > 0) {
-            setSelectedAccount(accounts[0]);
-
-            // Save to database for caching
-            const accountsToInsert = accounts.map(acc => ({
-              user_id: user.id,
-              account_id: acc.account_id,
-              ad_account_id: acc.id,
-              name: acc.name,
-              currency: acc.currency,
-              business_id: acc.business?.id || null,
-              business_name: acc.business?.name || null,
-            }));
-
-            await supabase
-              .from('meta_ad_accounts')
-              .upsert(accountsToInsert, {
-                onConflict: 'user_id,account_id',
-                ignoreDuplicates: false
-              });
-          }
+        if (accounts.length > 0) {
+          setSelectedAccount(accounts[0]);
         }
 
         setIsLoading(false);
@@ -241,27 +196,6 @@ export const useMetaData = (): UseMetaDataResult => {
       const accounts = await api.getAdAccounts();
 
       setAdAccounts(accounts);
-
-      // Update cache
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const accountsToUpdate = accounts.map(acc => ({
-          user_id: user.id,
-          account_id: acc.account_id,
-          ad_account_id: acc.id,
-          name: acc.name,
-          currency: acc.currency,
-          business_id: acc.business?.id || null,
-          business_name: acc.business?.name || null,
-        }));
-
-        await supabase
-          .from('meta_ad_accounts')
-          .upsert(accountsToUpdate, {
-            onConflict: 'user_id,account_id',
-            ignoreDuplicates: false
-          });
-      }
 
       // Re-fetch insights if account is selected
       if (selectedAccount) {
