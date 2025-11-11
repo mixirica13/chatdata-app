@@ -129,51 +129,60 @@ export const useMetaData = (): UseMetaDataResult => {
       try {
         const api = createMetaGraphAPI(accessToken);
 
-        // Get account-level insights for last 7 days
-        const response = await fetch(
-          `https://graph.facebook.com/v24.0/${selectedAccount.id}/insights?` +
-          `fields=impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions&` +
-          `date_preset=last_7d&` +
-          `access_token=${accessToken}`
-        );
+        // Try different time periods until we find data
+        const periods = ['last_7d', 'last_14d', 'last_30d', 'last_90d'];
+        let foundData = false;
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error?.message || 'Erro ao buscar insights');
+        for (const period of periods) {
+          const response = await fetch(
+            `https://graph.facebook.com/v24.0/${selectedAccount.id}/insights?` +
+            `fields=impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions&` +
+            `date_preset=${period}&` +
+            `access_token=${accessToken}`
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || 'Erro ao buscar insights');
+          }
+
+          const data = await response.json();
+
+          if (data.data && data.data.length > 0) {
+            const insightData = data.data[0];
+
+            // Process actions/conversions
+            const actions = insightData.actions || [];
+            const conversions = actions.reduce((acc: any, action: any) => {
+              acc[action.action_type] = parseInt(action.value);
+              return acc;
+            }, {});
+
+            const processedInsights: CampaignInsights = {
+              campaign_id: selectedAccount.id,
+              campaign_name: selectedAccount.name,
+              impressions: parseInt(insightData.impressions || '0'),
+              clicks: parseInt(insightData.clicks || '0'),
+              spend: parseFloat(insightData.spend || '0'),
+              ctr: parseFloat(insightData.ctr || '0'),
+              cpc: parseFloat(insightData.cpc || '0'),
+              reach: parseInt(insightData.reach || '0'),
+              frequency: parseFloat(insightData.frequency || '0'),
+              conversions,
+              date_start: insightData.date_start,
+              date_stop: insightData.date_stop,
+            };
+
+            setInsights(processedInsights);
+            foundData = true;
+            break; // Found data, stop trying other periods
+          }
         }
 
-        const data = await response.json();
-
-        if (data.data && data.data.length > 0) {
-          const insightData = data.data[0];
-
-          // Process actions/conversions
-          const actions = insightData.actions || [];
-          const conversions = actions.reduce((acc: any, action: any) => {
-            acc[action.action_type] = parseInt(action.value);
-            return acc;
-          }, {});
-
-          const processedInsights: CampaignInsights = {
-            campaign_id: selectedAccount.id,
-            campaign_name: selectedAccount.name,
-            impressions: parseInt(insightData.impressions || '0'),
-            clicks: parseInt(insightData.clicks || '0'),
-            spend: parseFloat(insightData.spend || '0'),
-            ctr: parseFloat(insightData.ctr || '0'),
-            cpc: parseFloat(insightData.cpc || '0'),
-            reach: parseInt(insightData.reach || '0'),
-            frequency: parseFloat(insightData.frequency || '0'),
-            conversions,
-            date_start: insightData.date_start,
-            date_stop: insightData.date_stop,
-          };
-
-          setInsights(processedInsights);
-        } else {
-          // No insights data available
+        if (!foundData) {
+          // No insights data available for any period
           setInsights(null);
-          setError('Nenhum dado de insights disponível para este período');
+          setError('Esta conta não possui dados de anúncios nos últimos 90 dias');
         }
       } catch (err: any) {
         console.error('Error fetching insights:', err);

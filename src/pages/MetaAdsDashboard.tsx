@@ -9,6 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   TrendingUp,
   DollarSign,
   Eye,
@@ -110,33 +117,57 @@ const MetaAdsDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 space-y-4 max-w-7xl mx-auto w-full">
         {/* Account Selector */}
-        {selectedAccount && (
+        {adAccounts.length > 0 && selectedAccount && (
           <LiquidGlass className="p-1">
             <div className="bg-gradient-to-br from-[#46CCC6]/20 to-[#46CCC6]/5 backdrop-blur-sm rounded-2xl p-4 border border-[#46CCC6]/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#46CCC6] rounded-full p-2">
-                    <Facebook className="h-5 w-5 text-black" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-white">
-                      {selectedAccount.name}
-                    </h2>
-                    <p className="text-sm text-gray-400">
-                      ID: {selectedAccount.account_id}
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="bg-[#46CCC6] rounded-full p-2">
+                  <Facebook className="h-5 w-5 text-black" />
                 </div>
-                {adAccounts.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-[#46CCC6] hover:bg-[#46CCC6]/10"
-                  >
-                    Trocar
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                )}
+                <div className="flex-1">
+                  <p className="text-sm text-gray-400 mb-1">Conta de Anúncios</p>
+                  {adAccounts.length > 1 ? (
+                    <Select
+                      value={selectedAccount.id}
+                      onValueChange={(value) => {
+                        const account = adAccounts.find(acc => acc.id === value);
+                        if (account) setSelectedAccount(account);
+                      }}
+                    >
+                      <SelectTrigger className="bg-black/40 border-white/10 text-white h-auto py-2">
+                        <SelectValue>
+                          <div className="text-left">
+                            <p className="font-bold">{selectedAccount.name}</p>
+                            <p className="text-xs text-gray-400">ID: {selectedAccount.account_id}</p>
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-black border-white/10">
+                        {adAccounts.map((account) => (
+                          <SelectItem
+                            key={account.id}
+                            value={account.id}
+                            className="text-white hover:bg-white/10 focus:bg-white/10"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{account.name}</span>
+                              <span className="text-xs text-gray-400">ID: {account.account_id}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div>
+                      <h2 className="text-lg font-bold text-white">
+                        {selectedAccount.name}
+                      </h2>
+                      <p className="text-sm text-gray-400">
+                        ID: {selectedAccount.account_id}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {selectedAccount.business && (
