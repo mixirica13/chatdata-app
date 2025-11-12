@@ -109,6 +109,19 @@ serve(async (req) => {
 
     console.log('Credentials stored successfully')
 
+    // Update meta_connected flag in subscribers table
+    const { error: subscriberError } = await supabaseClient
+      .from('subscribers')
+      .update({ meta_connected: true })
+      .eq('user_id', user.id)
+
+    if (subscriberError) {
+      console.error('Error updating subscriber meta_connected flag:', subscriberError)
+      // Don't throw error, just log it - credentials are already saved
+    } else {
+      console.log('Subscriber meta_connected flag updated successfully')
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
