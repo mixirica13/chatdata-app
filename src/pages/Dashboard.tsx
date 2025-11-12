@@ -82,43 +82,48 @@ const Dashboard = () => {
             </LiquidGlass>
           )}
 
-          <LiquidGlass className="p-1">
-            <ConnectionCard
-              title="WhatsApp"
-              description="Autentique seu número para usar a IA via WhatsApp"
-              icon={MessageCircle}
-              connected={whatsappConnected}
-              onConnect={() => navigate('/connect/whatsapp')}
-              onDisconnect={disconnectWhatsapp}
-            />
-          </LiquidGlass>
+          {/* WhatsApp Section - Temporarily Hidden for Meta Review */}
+          {false && (
+            <>
+              <LiquidGlass className="p-1">
+                <ConnectionCard
+                  title="WhatsApp"
+                  description="Autentique seu número para usar a IA via WhatsApp"
+                  icon={MessageCircle}
+                  connected={whatsappConnected}
+                  onConnect={() => navigate('/connect/whatsapp')}
+                  onDisconnect={disconnectWhatsapp}
+                />
+              </LiquidGlass>
 
-          {/* Box do Agente de IA */}
-          <LiquidGlass className="p-1">
-            <div className="bg-gradient-to-br from-[#46CCC6]/10 to-[#46CCC6]/5 backdrop-blur-sm rounded-2xl p-6 border border-[#46CCC6]/20">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="bg-[#46CCC6] rounded-full p-3">
-                  <MessageCircle className="h-8 w-8 text-black" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-white mb-1">
-                    Agente de IA
-                  </h3>
-                  <p className="text-sm text-gray-300">
-                    Converse com nosso assistente via WhatsApp
-                  </p>
-                </div>
-              </div>
+              {/* Box do Agente de IA */}
+              <LiquidGlass className="p-1">
+                <div className="bg-gradient-to-br from-[#46CCC6]/10 to-[#46CCC6]/5 backdrop-blur-sm rounded-2xl p-6 border border-[#46CCC6]/20">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-[#46CCC6] rounded-full p-3">
+                      <MessageCircle className="h-8 w-8 text-black" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-white mb-1">
+                        Agente de IA
+                      </h3>
+                      <p className="text-sm text-gray-300">
+                        Converse com nosso assistente via WhatsApp
+                      </p>
+                    </div>
+                  </div>
 
-              <button
-                onClick={handleAgentClick}
-                className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[#46CCC6]/20"
-              >
-                <WhatsAppIcon className="h-4 w-4" />
-                Iniciar Conversa no WhatsApp
-              </button>
-            </div>
-          </LiquidGlass>
+                  <button
+                    onClick={handleAgentClick}
+                    className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-[#46CCC6]/20"
+                  >
+                    <WhatsAppIcon className="h-4 w-4" />
+                    Iniciar Conversa no WhatsApp
+                  </button>
+                </div>
+              </LiquidGlass>
+            </>
+          )}
         </div>
       </div>
 
