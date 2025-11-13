@@ -2,21 +2,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFacebookLogin } from '@/hooks/useFacebookLogin';
-import { createMetaGraphAPI } from '@/lib/metaGraphAPI';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Facebook, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
-import { AdAccount } from '@/types/facebook';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ConnectMeta = () => {
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
-  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
-  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const { user, checkSubscription } = useAuth();
   const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
@@ -24,30 +18,51 @@ const ConnectMeta = () => {
 
   const isConnected = !!authResponse;
 
-  // Load ad accounts when user connects
+  // Automatically save token when user connects with Facebook
   useEffect(() => {
-    const loadAdAccounts = async () => {
-      if (!authResponse) return;
+    const saveConnection = async () => {
+      if (!authResponse || !user || isSaving) return;
 
-      setIsLoadingAccounts(true);
+      setIsSaving(true);
       try {
-        const api = createMetaGraphAPI(authResponse.accessToken);
-        const accounts = await api.getAdAccounts();
-        setAdAccounts(accounts);
+        console.log('Exchanging Facebook token for long-lived token...');
 
-        if (accounts.length === 0) {
-          toast.info('Nenhuma conta de anúncios encontrada');
+        // Exchange short-lived token for long-lived token via Edge Function
+        const { data, error: exchangeError } = await supabase.functions.invoke('exchange-facebook-token', {
+          body: {
+            short_lived_token: authResponse.accessToken,
+            ad_account_ids: [], // Empty array - user will select accounts later
+            granted_permissions: authResponse.grantedScopes?.split(',') || [],
+          },
+        });
+
+        if (exchangeError) {
+          console.error('Token exchange error:', exchangeError);
+          toast.error('Erro ao salvar conexão. Tente novamente.');
+          return;
         }
+
+        console.log('Token exchanged successfully:', data);
+
+        // Refresh user profile to update metaConnected flag
+        await checkSubscription();
+
+        toast.success('Meta Ads conectado com sucesso!');
+
+        // Navigate to dashboard after a short delay
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       } catch (error) {
-        console.error('Error loading ad accounts:', error);
-        toast.error('Erro ao carregar contas de anúncios');
+        console.error('Error saving connection:', error);
+        toast.error('Erro ao salvar conexão. Tente novamente.');
       } finally {
-        setIsLoadingAccounts(false);
+        setIsSaving(false);
       }
     };
 
-    loadAdAccounts();
-  }, [authResponse]);
+    saveConnection();
+  }, [authResponse, user]);
 
   const handleConnect = async () => {
     try {
@@ -56,65 +71,6 @@ const ConnectMeta = () => {
       console.error('Connection error:', error);
       toast.error('Erro ao conectar com Meta');
     }
-  };
-
-  const handleConfirm = async () => {
-    if (selectedAccounts.length === 0) {
-      toast.error('Selecione pelo menos uma conta de anúncios');
-      return;
-    }
-
-    if (!authResponse || !user) {
-      toast.error('Erro: Usuário não autenticado');
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      console.log('Exchanging Facebook token for long-lived token...');
-
-      // Extract account IDs from selected accounts
-      const accountIds = selectedAccounts.map(id => {
-        const account = adAccounts.find(acc => acc.id === id);
-        return account?.account_id || id.replace('act_', '');
-      });
-
-      // Exchange short-lived token for long-lived token via Edge Function
-      const { data, error: exchangeError } = await supabase.functions.invoke('exchange-facebook-token', {
-        body: {
-          short_lived_token: authResponse.accessToken,
-          ad_account_ids: accountIds,
-          granted_permissions: authResponse.grantedScopes?.split(',') || [],
-        },
-      });
-
-      if (exchangeError) {
-        console.error('Token exchange error:', exchangeError);
-        throw new Error('Falha ao trocar token do Facebook');
-      }
-
-      console.log('Token exchanged successfully:', data);
-
-      // Refresh user profile to update metaConnected flag
-      await checkSubscription();
-
-      toast.success('Meta Ads conectado com sucesso!');
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error confirming connection:', error);
-      toast.error('Erro ao salvar conexão. Tente novamente.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const toggleAccount = (accountId: string) => {
-    setSelectedAccounts((prev) =>
-      prev.includes(accountId)
-        ? prev.filter((id) => id !== accountId)
-        : [...prev, accountId]
-    );
   };
 
   return (
@@ -208,70 +164,17 @@ const ConnectMeta = () => {
                 </Button>
               </>
             ) : (
-              <>
+              <div className="space-y-4">
                 <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-4 rounded-lg">
                   <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-semibold">Conexão estabelecida com sucesso!</span>
+                  <span className="font-semibold">Conectando sua conta...</span>
                 </div>
 
-                {isLoadingAccounts ? (
-                  <div className="flex justify-center py-8">
-                    <LoadingSpinner size="lg" />
-                    <p className="ml-3 text-muted-foreground">Carregando contas de anúncios...</p>
-                  </div>
-                ) : adAccounts.length === 0 ? (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Nenhuma conta de anúncios encontrada. Certifique-se de ter acesso a pelo menos uma conta de anúncios no Meta Business Manager.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold mb-3">Selecione as contas de anúncios:</h3>
-                      <div className="space-y-3">
-                        {adAccounts.map((account) => (
-                          <div
-                            key={account.id}
-                            className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                            onClick={() => toggleAccount(account.id)}
-                          >
-                            <Checkbox
-                              checked={selectedAccounts.includes(account.id)}
-                              onCheckedChange={() => toggleAccount(account.id)}
-                            />
-                            <div className="flex-1">
-                              <p className="font-medium">{account.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                ID: {account.account_id} • {account.currency}
-                              </p>
-                              {account.business && (
-                                <p className="text-xs text-muted-foreground">
-                                  Business: {account.business.name}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleConfirm}
-                      className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
-                      size="lg"
-                      disabled={selectedAccounts.length === 0 || isSaving}
-                    >
-                      {isSaving ? (
-                        <LoadingSpinner size="sm" />
-                      ) : (
-                        'Confirmar e Continuar'
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </>
+                <div className="flex justify-center py-8">
+                  <LoadingSpinner size="lg" />
+                  <p className="ml-3 text-muted-foreground">Salvando credenciais e configurando acesso...</p>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

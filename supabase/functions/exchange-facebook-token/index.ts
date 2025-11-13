@@ -98,6 +98,8 @@ serve(async (req) => {
         ad_account_ids: body.ad_account_ids || [],
         granted_permissions: body.granted_permissions || [],
         updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id'
       })
       .select()
       .single()
