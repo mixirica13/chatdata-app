@@ -208,12 +208,24 @@ export const useAuth = create<AuthState>()(
         try {
           const state = get();
           if (state.user) {
-            const { error } = await supabase
+            // Delete credentials from meta_credentials table
+            const { error: credentialsError } = await supabase
+              .from('meta_credentials')
+              .delete()
+              .eq('user_id', state.user.id);
+
+            if (credentialsError) {
+              console.error('Error deleting meta credentials:', credentialsError);
+              throw credentialsError;
+            }
+
+            // Update meta_connected flag in subscribers table
+            const { error: subscriberError } = await supabase
               .from('subscribers')
               .update({ meta_connected: false })
               .eq('user_id', state.user.id);
 
-            if (error) throw error;
+            if (subscriberError) throw subscriberError;
 
             set({ metaConnected: false });
           }
