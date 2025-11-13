@@ -18,17 +18,42 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { metaConnected, disconnectMeta, whatsappConnected, disconnectWhatsapp } = useAuth();
   const [showConnectionAlert, setShowConnectionAlert] = useState(false);
+  const [showDisconnectMetaAlert, setShowDisconnectMetaAlert] = useState(false);
+  const [showDisconnectWhatsappAlert, setShowDisconnectWhatsappAlert] = useState(false);
 
   const handleAgentClick = () => {
     if (!metaConnected || !whatsappConnected) {
       setShowConnectionAlert(true);
     } else {
       window.open('https://wa.me/YOUR_WHATSAPP_NUMBER', '_blank');
+    }
+  };
+
+  const handleDisconnectMeta = async () => {
+    try {
+      await disconnectMeta();
+      setShowDisconnectMetaAlert(false);
+      toast.success('Meta Ads desconectado com sucesso!');
+    } catch (error) {
+      console.error('Error disconnecting Meta:', error);
+      toast.error('Erro ao desconectar Meta Ads. Tente novamente.');
+    }
+  };
+
+  const handleDisconnectWhatsapp = async () => {
+    try {
+      await disconnectWhatsapp();
+      setShowDisconnectWhatsappAlert(false);
+      toast.success('WhatsApp desconectado com sucesso!');
+    } catch (error) {
+      console.error('Error disconnecting WhatsApp:', error);
+      toast.error('Erro ao desconectar WhatsApp. Tente novamente.');
     }
   };
 
@@ -49,7 +74,7 @@ const Dashboard = () => {
               icon={Facebook}
               connected={metaConnected}
               onConnect={() => navigate('/connect/meta')}
-              onDisconnect={disconnectMeta}
+              onDisconnect={() => setShowDisconnectMetaAlert(true)}
             />
           </LiquidGlass>
 
@@ -92,7 +117,7 @@ const Dashboard = () => {
                   icon={MessageCircle}
                   connected={whatsappConnected}
                   onConnect={() => navigate('/connect/whatsapp')}
-                  onDisconnect={disconnectWhatsapp}
+                  onDisconnect={() => setShowDisconnectWhatsappAlert(true)}
                 />
               </LiquidGlass>
 
@@ -228,6 +253,56 @@ const Dashboard = () => {
               }}
             >
               Conectar Agora
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Alert Dialog para confirmar desconexão Meta */}
+      <AlertDialog open={showDisconnectMetaAlert} onOpenChange={setShowDisconnectMetaAlert}>
+        <AlertDialogContent className="bg-black border-2 border-red-500/30 max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-bold text-white text-center">
+              Desconectar Meta Ads?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400 text-center pt-2">
+              Isso irá remover todas as suas credenciais e dados de conexão com o Meta Ads. Você precisará conectar novamente para acessar suas métricas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="bg-white/5 text-white border-white/10 hover:bg-white/10">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 text-white hover:bg-red-600 font-semibold"
+              onClick={handleDisconnectMeta}
+            >
+              Desconectar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Alert Dialog para confirmar desconexão WhatsApp */}
+      <AlertDialog open={showDisconnectWhatsappAlert} onOpenChange={setShowDisconnectWhatsappAlert}>
+        <AlertDialogContent className="bg-black border-2 border-red-500/30 max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-bold text-white text-center">
+              Desconectar WhatsApp?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400 text-center pt-2">
+              Isso irá remover sua autenticação do WhatsApp. Você precisará autenticar novamente para usar o Agente de IA.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="bg-white/5 text-white border-white/10 hover:bg-white/10">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 text-white hover:bg-red-600 font-semibold"
+              onClick={handleDisconnectWhatsapp}
+            >
+              Desconectar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
