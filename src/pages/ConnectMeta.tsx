@@ -18,7 +18,7 @@ const ConnectMeta = () => {
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const { user } = useAuth();
+  const { user, checkSubscription } = useAuth();
   const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
   const navigate = useNavigate();
 
@@ -95,6 +95,9 @@ const ConnectMeta = () => {
       }
 
       console.log('Token exchanged successfully:', data);
+
+      // Refresh user profile to update metaConnected flag
+      await checkSubscription();
 
       toast.success('Meta Ads conectado com sucesso!');
       navigate('/dashboard');
