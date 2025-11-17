@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 const PERMISSIONS = import.meta.env.VITE_META_PERMISSIONS ||
   'ads_management,ads_read,business_management,pages_read_engagement';
 
+const CONFIG_ID = import.meta.env.VITE_META_CONFIG_ID || '';
+
 interface UseFacebookLoginResult {
   isInitialized: boolean;
   isLoading: boolean;
@@ -71,6 +73,19 @@ export const useFacebookLogin = (): UseFacebookLoginResult => {
       const FB = await getFacebookSDK();
 
       return new Promise((resolve) => {
+        // Use Facebook Login for Business if CONFIG_ID is provided
+        const loginOptions: any = {
+          scope: PERMISSIONS,
+          return_scopes: true,
+          auth_type: 'rerequest', // Request permissions again if previously declined
+        };
+
+        // Add config_id for Facebook Login for Business (required for Business apps)
+        if (CONFIG_ID) {
+          loginOptions.config_id = CONFIG_ID;
+          loginOptions.response_type = 'code'; // Required for Business Login
+        }
+
         FB.login(
           (response: FacebookLoginResponse) => {
             setIsLoading(false);
@@ -84,11 +99,7 @@ export const useFacebookLogin = (): UseFacebookLoginResult => {
               resolve(null);
             }
           },
-          {
-            scope: PERMISSIONS,
-            return_scopes: true,
-            auth_type: 'rerequest', // Request permissions again if previously declined
-          }
+          loginOptions
         );
       });
     } catch (error) {
