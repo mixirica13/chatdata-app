@@ -107,9 +107,8 @@ const Dashboard = () => {
             </LiquidGlass>
           )}
 
-          {/* WhatsApp Section - Temporarily Hidden for Meta Review */}
-          {false && (
-            <>
+          {/* WhatsApp Section */}
+          <>
               <LiquidGlass className="p-1">
                 <ConnectionCard
                   title="WhatsApp"
@@ -148,7 +147,6 @@ const Dashboard = () => {
                 </div>
               </LiquidGlass>
             </>
-          )}
         </div>
       </div>
 
