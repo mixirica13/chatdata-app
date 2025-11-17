@@ -141,12 +141,6 @@ const ConnectMeta = () => {
                   </p>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                  <p className="text-sm text-yellow-900">
-                    <strong>Modo de Teste:</strong> Este app está em modo de desenvolvimento. Apenas usuários autorizados como testadores no Meta App podem fazer login.
-                  </p>
-                </div>
-
                 <Button
                   onClick={handleConnect}
                   disabled={isLoading || !isInitialized}
