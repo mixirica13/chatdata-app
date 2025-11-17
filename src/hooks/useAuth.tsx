@@ -161,7 +161,12 @@ export const useAuth = create<AuthState>()(
       },
 
       logout: async () => {
-        await supabase.auth.signOut();
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+
+        // Clear all storage to ensure clean logout
+        localStorage.removeItem('auth-storage');
+
         set({
           user: null,
           profile: null,
