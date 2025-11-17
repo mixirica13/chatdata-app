@@ -84,6 +84,7 @@ export const useFacebookLogin = (): UseFacebookLoginResult => {
         if (CONFIG_ID) {
           loginOptions.config_id = CONFIG_ID;
           loginOptions.response_type = 'code'; // Required for Business Login
+          loginOptions.override_default_response_type = true; // Required by Facebook docs
         }
 
         FB.login(
