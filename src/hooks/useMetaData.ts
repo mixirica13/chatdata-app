@@ -132,7 +132,7 @@ export const useMetaData = (): UseMetaDataResult => {
         setError(null);
         const api = createMetaGraphAPI(accessToken);
 
-        let url = `https://graph.facebook.com/v24.0/${selectedAccount.id}/insights?` +
+        let url = `https://graph.facebook.com/v22.0/${selectedAccount.id}/insights?` +
           `fields=impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions&` +
           `access_token=${accessToken}`;
 

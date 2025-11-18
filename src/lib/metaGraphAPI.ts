@@ -1,7 +1,7 @@
 import { getFacebookSDK } from './facebookSDK';
 import { AdAccount, AdAccountsResponse, FacebookApiResponse } from '@/types/facebook';
 
-const API_VERSION = import.meta.env.VITE_META_API_VERSION || 'v24.0';
+const API_VERSION = import.meta.env.VITE_META_API_VERSION || 'v22.0';
 
 export class MetaGraphAPI {
   private accessToken: string;

@@ -37,7 +37,8 @@ export interface FacebookLoginResponse {
 }
 
 export interface FacebookAuthResponse {
-  accessToken: string;
+  accessToken?: string; // Present in normal Facebook Login
+  code?: string; // Present in Facebook Login for Business (when using response_type: 'code')
   expiresIn: number;
   signedRequest: string;
   userID: string;
