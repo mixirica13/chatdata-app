@@ -81,10 +81,10 @@ export const useFacebookLogin = (): UseFacebookLoginResult => {
         };
 
         // Add config_id for Facebook Login for Business (required for Business apps)
+        // Note: For User Access Token configuration, only config_id is needed
+        // response_type: 'code' and override_default_response_type are only for System User Access Token
         if (CONFIG_ID) {
           loginOptions.config_id = CONFIG_ID;
-          loginOptions.response_type = 'code'; // Required for Business Login
-          loginOptions.override_default_response_type = true; // Required by Facebook docs
         }
 
         FB.login(
