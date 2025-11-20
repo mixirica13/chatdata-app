@@ -65,7 +65,7 @@ serve(async (req) => {
 
     // Exchange short-lived token for long-lived token (60 days)
     // https://developers.facebook.com/docs/facebook-login/guides/access-tokens/get-long-lived
-    const exchangeUrl = new URL('https://graph.facebook.com/v22.0/oauth/access_token')
+    const exchangeUrl = new URL('https://graph.facebook.com/v24.0/oauth/access_token')
     exchangeUrl.searchParams.set('grant_type', 'fb_exchange_token')
     exchangeUrl.searchParams.set('client_id', appId)
     exchangeUrl.searchParams.set('client_secret', appSecret)

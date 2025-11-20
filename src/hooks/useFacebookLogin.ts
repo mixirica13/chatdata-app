@@ -73,34 +73,26 @@ export const useFacebookLogin = (): UseFacebookLoginResult => {
       const FB = await getFacebookSDK();
 
       return new Promise((resolve) => {
-        // Use Facebook Login for Business if CONFIG_ID is provided
-        const loginOptions: any = {
-          scope: PERMISSIONS,
-          return_scopes: true,
-          auth_type: 'rerequest', // Request permissions again if previously declined
-        };
-
-        // Add config_id for Facebook Login for Business (required for Business apps)
-        // Note: For User Access Token configuration, only config_id is needed
-        // response_type: 'code' and override_default_response_type are only for System User Access Token
-        if (CONFIG_ID) {
-          loginOptions.config_id = CONFIG_ID;
-        }
-
+        // Facebook Login for Business configuration
+        // Use ONLY config_id - it already defines the permissions
         FB.login(
           (response: FacebookLoginResponse) => {
             setIsLoading(false);
 
             if (response.status === 'connected' && response.authResponse) {
+              console.log('User Access Token:', response.authResponse.accessToken);
               setAuthResponse(response.authResponse);
               toast.success('Login realizado com sucesso!');
               resolve(response.authResponse);
             } else {
+              console.log('Login cancelado ou falhou.');
               toast.error('Login cancelado ou não autorizado');
               resolve(null);
             }
           },
-          loginOptions
+          {
+            config_id: CONFIG_ID // Use APENAS o config_id
+          }
         );
       });
     } catch (error) {
