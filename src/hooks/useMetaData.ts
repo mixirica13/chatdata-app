@@ -134,6 +134,7 @@ export const useMetaData = (): UseMetaDataResult => {
 
         let url = `https://graph.facebook.com/v24.0/${selectedAccount.id}/insights?` +
           `fields=impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,actions&` +
+          `time_zone=America/Sao_Paulo&` +
           `access_token=${accessToken}`;
 
         // Use custom date range if available, otherwise try preset periods
