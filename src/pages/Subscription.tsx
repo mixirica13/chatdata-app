@@ -216,7 +216,7 @@ const Subscription = () => {
                   <div>
                     <CardTitle className="flex items-center gap-2 text-white">
                       <Crown className="w-5 h-5 text-[#46CCC6]" />
-                      Plano Ativo
+                      Plano {subscriptionTier && plans.find(p => p.id === subscriptionTier)?.name}
                     </CardTitle>
                     <CardDescription className="text-white/60">
                       Você tem acesso aos recursos do seu plano
