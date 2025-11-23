@@ -41,7 +41,7 @@ const plans: Plan[] = [
     name: 'Basic',
     icon: Zap,
     price: 'R$ 47',
-    priceId: 'price_1SWNPnPP0f85Y8YeDasmeYWS',
+    priceId: 'price_1SWm28A76CJavEvOTQu7kLC1',
     description: 'Ideal para começar com IA',
     features: [
       'Acesso à IA ChatData no WhatsApp',
@@ -56,7 +56,7 @@ const plans: Plan[] = [
     name: 'Pro',
     icon: TrendingUp,
     price: 'R$ 97',
-    priceId: 'price_1SWOcLPP0f85Y8YeudkmoKE0',
+    priceId: 'price_1SWlyAA76CJavEvOEXapiskH',
     description: 'Para profissionais que buscam mais',
     features: [
       'Acesso à IA ChatData no WhatsApp',
@@ -74,7 +74,7 @@ const plans: Plan[] = [
     name: 'Agency',
     icon: Rocket,
     price: 'R$ 197',
-    priceId: 'price_1SWOg3PP0f85Y8YeFQ9xaFvR',
+    priceId: 'price_1SWlxaA76CJavEvOS0FdYuNb',
     description: 'Solução completa para agências',
     features: [
       'Todos os recursos do Pro',

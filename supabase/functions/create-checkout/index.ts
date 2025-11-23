@@ -37,7 +37,7 @@ serve(async (req) => {
 
     // Parse request body to get the priceId
     const requestBody = await req.json();
-    const priceId = requestBody.priceId || "price_1SWNPnPP0f85Y8YeDasmeYWS"; // Default to Basic plan
+    const priceId = requestBody.priceId || "price_1SWm28A76CJavEvOTQu7kLC1"; // Default to Basic plan
 
     logStep("Price ID received", { priceId });
 

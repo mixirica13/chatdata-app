@@ -18,9 +18,9 @@ function getPlanTier(priceId) {
   console.log(`Mapeando ID de preço: ${priceId}`);
   const planMap = {
     // Adicione aqui os IDs dos preços do Stripe para cada plano
-    'price_1SWNPnPP0f85Y8YeDasmeYWS': 'basic',      // 50 requisições/dia
-    'price_1SWOcLPP0f85Y8YeudkmoKE0': 'pro',          // 100 requisições/dia
-    'price_1SWOg3PP0f85Y8YeFQ9xaFvR': 'agency',    // Ilimitado
+    'price_1SWm28A76CJavEvOTQu7kLC1': 'basic',      // 50 requisições/dia
+    'price_1SWlyAA76CJavEvOEXapiskH': 'pro',          // 100 requisições/dia
+    'price_1SWlxaA76CJavEvOS0FdYuNb': 'agency',    // Ilimitado
     'price_1SGWsuPP0f85Y8YeWAxdErjJ': 'premium' // legacy
   };
   const result = planMap[priceId] || 'free';
