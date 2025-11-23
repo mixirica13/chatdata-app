@@ -6,7 +6,7 @@ import { Logo } from '@/components/Logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Loader2, CreditCard, FileText, XCircle } from 'lucide-react';
+import { Check, Crown, Loader2, CreditCard, XCircle, Zap, Rocket, TrendingUp, BarChart3, AlertTriangle, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -21,18 +21,96 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+type PlanType = 'basic' | 'pro' | 'agency';
+
+interface Plan {
+  id: PlanType;
+  name: string;
+  icon: React.ElementType;
+  price: string;
+  priceId: string;
+  description: string;
+  features: string[];
+  popular: boolean;
+  requestLimit: string;
+}
+
+const plans: Plan[] = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    icon: Zap,
+    price: 'R$ 47',
+    priceId: 'price_1SWNPnPP0f85Y8YeDasmeYWS',
+    description: 'Ideal para começar com IA',
+    features: [
+      'Acesso à IA ChatData no WhatsApp',
+      'Dashboard geral com métricas principais',
+      '50 requisições/dia',
+    ],
+    popular: true,
+    requestLimit: '50 requisições/dia',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    icon: TrendingUp,
+    price: 'R$ 97',
+    priceId: 'price_1SWOcLPP0f85Y8YeudkmoKE0',
+    description: 'Para profissionais que buscam mais',
+    features: [
+      'Acesso à IA ChatData no WhatsApp',
+      'Dashboard customizável',
+      'Burn-up chart para acompanhamento',
+      'Controle de gastos detalhado',
+      'Alerta de saldo para contas pré-pagas',
+      '100 requisições/dia',
+    ],
+    popular: false,
+    requestLimit: '100 requisições/dia',
+  },
+  {
+    id: 'agency',
+    name: 'Agency',
+    icon: Rocket,
+    price: 'R$ 197',
+    priceId: 'price_1SWOg3PP0f85Y8YeFQ9xaFvR',
+    description: 'Solução completa para agências',
+    features: [
+      'Todos os recursos do Pro',
+      'Dashboard customizável avançado',
+      'Burn-up chart detalhado',
+      'Controle completo de gastos',
+      'Alertas personalizados',
+      'Requisições ilimitadas',
+    ],
+    popular: false,
+    requestLimit: 'Requisições ilimitadas',
+  },
+];
+
 const Subscription = () => {
-  const { isSubscribed, subscriptionEnd, cancelAtPeriodEnd, checkSubscription } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isSubscribed, subscriptionEnd, cancelAtPeriodEnd, checkSubscription, subscriptionTier } = useAuth();
+  const [isLoading, setIsLoading] = useState<PlanType | null>(null);
   const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [canceledDate, setCanceledDate] = useState<string>('');
 
-  const handleSubscribe = async () => {
-    setIsLoading(true);
+  // Mapa de tiers para facilitar comparação
+  const tierOrder: Record<string, number> = {
+    'free': 0,
+    'basic': 1,
+    'pro': 2,
+    'agency': 3,
+  };
+
+  const handleSubscribe = async (priceId: string, planId: PlanType) => {
+    setIsLoading(planId);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId }
+      });
 
       if (error) throw error;
 
@@ -45,7 +123,7 @@ const Subscription = () => {
     } catch (error: any) {
       toast.error(error.message || 'Erro ao iniciar checkout');
     } finally {
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
@@ -98,6 +176,29 @@ const Subscription = () => {
     }
   };
 
+  // Função para determinar o texto do botão baseado no plano atual
+  const getButtonText = (planId: PlanType): string => {
+    if (!isSubscribed) return 'Assinar Agora';
+
+    const currentTier = subscriptionTier || 'free';
+    const currentOrder = tierOrder[currentTier] || 0;
+    const targetOrder = tierOrder[planId] || 0;
+
+    if (currentTier === planId) return 'Plano Atual';
+    if (targetOrder > currentOrder) return 'Fazer Upgrade';
+    if (targetOrder < currentOrder) return 'Fazer Downgrade';
+    return 'Trocar Plano';
+  };
+
+  // Função para verificar se é o plano atual
+  const isCurrentPlan = (planId: PlanType): boolean => {
+    return isSubscribed && subscriptionTier === planId;
+  };
+
+  // Reorganizar planos: no desktop coloca Basic no centro, no mobile por ordem de preço
+  const desktopOrder = [plans[1], plans[0], plans[2]]; // Pro, Basic, Agency
+  const mobileOrder = [...plans]; // Basic, Pro, Agency (ordem original por preço)
+
   return (
     <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
       {/* Logo fixa no header */}
@@ -105,7 +206,8 @@ const Subscription = () => {
         <Logo className="h-16 w-auto" />
       </div>
 
-      <div className="w-full max-w-2xl mx-auto space-y-6">
+      <div className="w-full max-w-7xl mx-auto space-y-8">
+        {/* Card de assinatura ativa */}
         {isSubscribed && (
           <LiquidGlass>
             <Card className="bg-transparent border-0">
@@ -117,7 +219,7 @@ const Subscription = () => {
                       Plano Ativo
                     </CardTitle>
                     <CardDescription className="text-white/60">
-                      Você tem acesso a todos os recursos premium
+                      Você tem acesso aos recursos do seu plano
                     </CardDescription>
                   </div>
                   <Badge className="bg-[#46CCC6] text-black">
@@ -173,29 +275,29 @@ const Subscription = () => {
                             Cancelar Assinatura
                           </Button>
                         </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-zinc-900 border-white/10">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">
-                            Tem certeza que deseja cancelar?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription className="text-white/60">
-                            Sua assinatura permanecerá ativa até o final do período de cobrança atual.
-                            Você perderá acesso aos recursos premium após essa data.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-transparent border-white/20 text-white hover:bg-white/10">
-                            Manter Assinatura
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleCancelSubscription}
-                            className="bg-red-600 text-white hover:bg-red-700"
-                          >
-                            Sim, Cancelar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                        <AlertDialogContent className="bg-zinc-900 border-white/10">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">
+                              Tem certeza que deseja cancelar?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-white/60">
+                              Sua assinatura permanecerá ativa até o final do período de cobrança atual.
+                              Você perderá acesso aos recursos do plano após essa data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-transparent border-white/20 text-white hover:bg-white/10">
+                              Manter Assinatura
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleCancelSubscription}
+                              className="bg-red-600 text-white hover:bg-red-700"
+                            >
+                              Sim, Cancelar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 </div>
@@ -204,56 +306,186 @@ const Subscription = () => {
           </LiquidGlass>
         )}
 
-        <LiquidGlass>
-          <Card className="bg-transparent border-0">
-            <CardHeader>
-              <CardTitle className="text-white">Plano Premium</CardTitle>
-              <CardDescription className="text-white/60">
-                Acesso completo à plataforma de insights com IA
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-4xl font-bold text-[#46CCC6]">
-                R$ 99,00 <span className="text-lg font-normal text-white/60">/mês</span>
-              </div>
+        {/* Título da seção de planos */}
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+            Escolha seu <span className="text-[#46CCC6]">plano ideal</span>
+          </h2>
+          <p className="text-white/60 text-lg">
+            Transforme seus dados do Meta Ads em insights acionáveis
+          </p>
+        </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-white">
-                  <Check className="w-5 h-5 text-[#46CCC6]" />
-                  <span>Insights ilimitados via WhatsApp</span>
+        {/* Grid de planos - Desktop (3 colunas com Basic no centro) */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
+          {desktopOrder.map((plan) => (
+            <div key={plan.id} className="relative">
+              {plan.popular && !isCurrentPlan(plan.id) && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                  <Badge className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] text-black px-4 py-1 text-xs font-bold">
+                    MAIS POPULAR
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-2 text-white">
-                  <Check className="w-5 h-5 text-[#46CCC6]" />
-                  <span>Análise de campanhas em tempo real</span>
-                </div>
-                <div className="flex items-center gap-2 text-white">
-                  <Check className="w-5 h-5 text-[#46CCC6]" />
-                  <span>Recomendações personalizadas com IA</span>
-                </div>
-                <div className="flex items-center gap-2 text-white">
-                  <Check className="w-5 h-5 text-[#46CCC6]" />
-                  <span>Relatórios detalhados de performance</span>
-                </div>
-                <div className="flex items-center gap-2 text-white">
-                  <Check className="w-5 h-5 text-[#46CCC6]" />
-                  <span>Suporte prioritário</span>
-                </div>
-              </div>
-
-              {!isSubscribed && (
-                <Button
-                  size="lg"
-                  className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
-                  onClick={handleSubscribe}
-                  disabled={isLoading}
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Assinar Agora
-                </Button>
               )}
-            </CardContent>
-          </Card>
-        </LiquidGlass>
+              {isCurrentPlan(plan.id) && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
+                    SEU PLANO ATUAL
+                  </Badge>
+                </div>
+              )}
+
+              <LiquidGlass
+                className={`h-full flex flex-col ${
+                  plan.popular ? 'border-2 border-[#46CCC6]/50 scale-105 shadow-2xl shadow-[#46CCC6]/20' : ''
+                }`}
+              >
+                <Card className="bg-transparent border-0 h-full flex flex-col">
+                  <CardHeader>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${
+                      plan.popular
+                        ? 'bg-gradient-to-br from-[#46CCC6] to-[#2D9B96]'
+                        : 'bg-white/10'
+                    }`}>
+                      <plan.icon className={`w-6 h-6 ${plan.popular ? 'text-black' : 'text-[#46CCC6]'}`} />
+                    </div>
+                    <CardTitle className="text-2xl text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+                      {plan.name}
+                    </CardTitle>
+                    <CardDescription className="text-white/60">
+                      {plan.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col flex-1 space-y-6">
+                    <div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+                          {plan.price}
+                        </span>
+                        <span className="text-white/60">/mês</span>
+                      </div>
+                      <p className="text-sm text-[#46CCC6] mt-1">{plan.requestLimit}</p>
+                    </div>
+
+                    <div className="space-y-3 flex-1">
+                      {plan.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#46CCC6]/20 flex items-center justify-center mt-0.5">
+                            <Check className="w-3 h-3 text-[#46CCC6]" />
+                          </div>
+                          <span className="text-white/80 text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      size="lg"
+                      className={`w-full font-semibold ${
+                        isCurrentPlan(plan.id)
+                          ? 'bg-white/10 text-white/60 cursor-not-allowed'
+                          : plan.popular
+                          ? 'bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] hover:opacity-90 text-black'
+                          : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                      }`}
+                      onClick={() => handleSubscribe(plan.priceId, plan.id)}
+                      disabled={isLoading === plan.id || isCurrentPlan(plan.id)}
+                    >
+                      {isLoading === plan.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {getButtonText(plan.id)}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </LiquidGlass>
+            </div>
+          ))}
+        </div>
+
+        {/* Grid de planos - Mobile (ordem por preço) */}
+        <div className="md:hidden space-y-6">
+          {mobileOrder.map((plan) => (
+            <div key={plan.id} className="relative">
+              {plan.popular && !isCurrentPlan(plan.id) && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                  <Badge className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] text-black px-4 py-1 text-xs font-bold">
+                    MAIS POPULAR
+                  </Badge>
+                </div>
+              )}
+              {isCurrentPlan(plan.id) && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
+                    SEU PLANO ATUAL
+                  </Badge>
+                </div>
+              )}
+
+              <LiquidGlass
+                className={plan.popular ? 'border-2 border-[#46CCC6]/50 shadow-xl shadow-[#46CCC6]/20' : ''}
+              >
+                <Card className="bg-transparent border-0">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        plan.popular
+                          ? 'bg-gradient-to-br from-[#46CCC6] to-[#2D9B96]'
+                          : 'bg-white/10'
+                      }`}>
+                        <plan.icon className={`w-6 h-6 ${plan.popular ? 'text-black' : 'text-[#46CCC6]'}`} />
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+                            {plan.price}
+                          </span>
+                          <span className="text-white/60 text-sm">/mês</span>
+                        </div>
+                        <p className="text-xs text-[#46CCC6]">{plan.requestLimit}</p>
+                      </div>
+                    </div>
+                    <CardTitle className="text-xl text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+                      {plan.name}
+                    </CardTitle>
+                    <CardDescription className="text-white/60">
+                      {plan.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      {plan.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className="flex-shrink-0 w-4 h-4 rounded-full bg-[#46CCC6]/20 flex items-center justify-center mt-0.5">
+                            <Check className="w-2.5 h-2.5 text-[#46CCC6]" />
+                          </div>
+                          <span className="text-white/80 text-sm">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      size="lg"
+                      className={`w-full font-semibold ${
+                        isCurrentPlan(plan.id)
+                          ? 'bg-white/10 text-white/60 cursor-not-allowed'
+                          : plan.popular
+                          ? 'bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] hover:opacity-90 text-black'
+                          : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                      }`}
+                      onClick={() => handleSubscribe(plan.priceId, plan.id)}
+                      disabled={isLoading === plan.id || isCurrentPlan(plan.id)}
+                    >
+                      {isLoading === plan.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {getButtonText(plan.id)}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </LiquidGlass>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Dialog de Sucesso do Cancelamento */}

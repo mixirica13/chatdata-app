@@ -27,29 +27,33 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header");
-    
+
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
-    
+
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Parse request body to get the priceId
+    const requestBody = await req.json();
+    const priceId = requestBody.priceId || "price_1SWNPnPP0f85Y8YeDasmeYWS"; // Default to Basic plan
+
+    logStep("Price ID received", { priceId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2024-11-20.acacia"
     });
-    
+
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
-    
+
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Existing customer found", { customerId });
     } else {
       logStep("No customer found, will create on checkout");
     }
-
-    const priceId = "price_1SGWsuPP0f85Y8YeWAxdErjJ";
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,

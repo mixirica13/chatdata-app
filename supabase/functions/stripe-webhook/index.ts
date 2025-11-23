@@ -17,11 +17,32 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 function getPlanTier(priceId) {
   console.log(`Mapeando ID de preço: ${priceId}`);
   const planMap = {
-    'price_1SGWsuPP0f85Y8YeWAxdErjJ': 'premium'
+    // Adicione aqui os IDs dos preços do Stripe para cada plano
+    'price_1SWNPnPP0f85Y8YeDasmeYWS': 'basic',      // 50 requisições/dia
+    'price_1SWOcLPP0f85Y8YeudkmoKE0': 'pro',          // 100 requisições/dia
+    'price_1SWOg3PP0f85Y8YeFQ9xaFvR': 'agency',    // Ilimitado
+    'price_1SGWsuPP0f85Y8YeWAxdErjJ': 'premium' // legacy
   };
-  const result = planMap[priceId] || 'unknown';
+  const result = planMap[priceId] || 'free';
   console.log(`Resultado do mapeamento: ${result}`);
   return result;
+}
+
+// Função para obter o limite de requisições baseado no tier
+function getRequestLimit(tier) {
+  const limits = {
+    'basic': 50,
+    'pro': 100,
+    'agency': 999999,
+    'premium': 2000,      // Legacy
+    'starter': 500,       // Legacy
+    'professional': 2000, // Legacy
+    'enterprise': 999999, // Legacy
+    'free': 10
+  };
+  const limit = limits[tier] || 10;
+  console.log(`Limite de requisições para tier ${tier}: ${limit}`);
+  return limit;
 }
 serve(async (req)=>{
   // CORS headers para OPTIONS
@@ -106,12 +127,14 @@ serve(async (req)=>{
           }
 
           // Atualizar ou inserir registro na tabela subscribers
+          const tier = getPlanTier(session.metadata.price_id);
           const { error } = await supabase.from('subscribers').upsert({
             user_id: session.client_reference_id,
             email: customer.email,
             stripe_customer_id: session.customer,
             subscribed: true,
-            subscription_tier: getPlanTier(session.metadata.price_id),
+            subscription_tier: tier,
+            ai_requests_limit: getRequestLimit(tier),
             subscription_end: subscriptionEnd,
             cancel_at_period_end: false,
             updated_at: new Date().toISOString()
@@ -170,12 +193,14 @@ serve(async (req)=>{
           }
           const userId = subscribers[0].user_id;
           // Atualizar o registro na tabela subscribers
+          const tier = getPlanTier(priceId);
           const { error } = await supabase.from('subscribers').upsert({
             user_id: userId,
             email: customer.email,
             stripe_customer_id: subscription.customer,
             subscribed: isActive,
-            subscription_tier: getPlanTier(priceId),
+            subscription_tier: tier,
+            ai_requests_limit: getRequestLimit(tier),
             subscription_end: subscriptionEnd,
             cancel_at_period_end: subscription.cancel_at_period_end || false,
             updated_at: new Date().toISOString()
@@ -269,12 +294,14 @@ serve(async (req)=>{
             }
             const userId = subscribers[0].user_id;
             // Atualizar o registro na tabela subscribers
+            const tier = getPlanTier(priceId);
             const { error } = await supabase.from('subscribers').upsert({
               user_id: userId,
               email: customer.email,
               stripe_customer_id: invoice.customer,
               subscribed: true,
-              subscription_tier: getPlanTier(priceId),
+              subscription_tier: tier,
+              ai_requests_limit: getRequestLimit(tier),
               subscription_end: subscriptionEnd,
               cancel_at_period_end: subscription.cancel_at_period_end || false,
               updated_at: new Date().toISOString()

@@ -10,6 +10,7 @@ interface AuthState {
   isLoading: boolean;
   isSubscribed: boolean;
   subscriptionEnd: string | null;
+  subscriptionTier: string | null;
   cancelAtPeriodEnd: boolean;
   metaConnected: boolean;
   whatsappConnected: boolean;
@@ -31,6 +32,7 @@ export const useAuth = create<AuthState>()(
       isLoading: true,
       isSubscribed: false,
       subscriptionEnd: null,
+      subscriptionTier: null,
       cancelAtPeriodEnd: false,
       metaConnected: false,
       whatsappConnected: false,
@@ -53,6 +55,7 @@ export const useAuth = create<AuthState>()(
               isAuthenticated: true,
               isSubscribed: profile?.subscribed || false,
               subscriptionEnd: profile?.subscription_end,
+              subscriptionTier: profile?.subscription_tier || null,
               cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
@@ -80,6 +83,7 @@ export const useAuth = create<AuthState>()(
                 isAuthenticated: true,
                 isSubscribed: profile?.subscribed || false,
                 subscriptionEnd: profile?.subscription_end,
+                subscriptionTier: profile?.subscription_tier || null,
                 cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
                 metaConnected: profile?.meta_connected || false,
                 whatsappConnected: profile?.whatsapp_connected || false,
@@ -95,6 +99,7 @@ export const useAuth = create<AuthState>()(
                 isAuthenticated: false,
                 isSubscribed: false,
                 subscriptionEnd: null,
+                subscriptionTier: null,
                 cancelAtPeriodEnd: false,
                 metaConnected: false,
                 whatsappConnected: false,
@@ -199,6 +204,7 @@ export const useAuth = create<AuthState>()(
               profile,
               isSubscribed: profile?.subscribed || false,
               subscriptionEnd: profile?.subscription_end,
+              subscriptionTier: profile?.subscription_tier || null,
               cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
