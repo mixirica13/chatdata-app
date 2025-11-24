@@ -105,12 +105,26 @@ serve(async (req)=>{
           const customer = await stripe.customers.retrieve(session.customer);
           console.log(`Cliente: ${JSON.stringify(customer)}`);
 
-          // Buscar a assinatura real para obter a data correta
+          // Buscar a assinatura real para obter a data correta e verificar trial
           let subscriptionEnd;
+          let subscriptionStatus = 'active';
+          let stripeSubscriptionId = null;
+
           if (session.subscription) {
             try {
               const subscription = await stripe.subscriptions.retrieve(session.subscription);
-              if (subscription.current_period_end) {
+              stripeSubscriptionId = subscription.id;
+              subscriptionStatus = subscription.status; // 'trialing' ou 'active'
+
+              console.log(`Status da assinatura: ${subscriptionStatus}`);
+              console.log(`Trial end: ${subscription.trial_end}`);
+
+              // Se estiver em trial, usar trial_end como data de término
+              // Caso contrário, usar current_period_end
+              if (subscriptionStatus === 'trialing' && subscription.trial_end) {
+                subscriptionEnd = new Date(subscription.trial_end * 1000).toISOString();
+                console.log(`Trial ativo - Data de término do trial: ${subscriptionEnd}`);
+              } else if (subscription.current_period_end) {
                 subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
                 console.log(`Data de término da assinatura: ${subscriptionEnd}`);
               } else {
@@ -132,7 +146,9 @@ serve(async (req)=>{
             user_id: session.client_reference_id,
             email: customer.email,
             stripe_customer_id: session.customer,
-            subscribed: true,
+            stripe_subscription_id: stripeSubscriptionId,
+            subscribed: true, // Tem acesso mesmo durante trial
+            subscription_status: subscriptionStatus,
             subscription_tier: tier,
             ai_requests_limit: getRequestLimit(tier),
             subscription_end: subscriptionEnd,
@@ -145,7 +161,7 @@ serve(async (req)=>{
             console.error(`Erro ao atualizar assinatura: ${error.message}`);
             throw new Error(`Erro ao atualizar assinatura: ${error.message}`);
           } else {
-            console.log(`Assinatura atualizada com sucesso para o usuário: ${session.client_reference_id}`);
+            console.log(`Assinatura atualizada com sucesso para o usuário: ${session.client_reference_id} (Status: ${subscriptionStatus})`);
           }
           break;
         }
@@ -155,18 +171,27 @@ serve(async (req)=>{
           // Retrieve customer details
           const customer = await stripe.customers.retrieve(subscription.customer);
           console.log(`Assinatura atualizada para cliente: ${JSON.stringify(customer)}`);
+          console.log(`Status da assinatura: ${subscription.status}`);
+
           // Obter o ID do preço da assinatura
           const priceId = subscription.items.data[0].price.id;
           console.log(`ID do preço na assinatura atualizada: ${priceId}`);
-          // Verificar se a assinatura está ativa
-          const isActive = subscription.status === 'active';
+
+          // Verificar status da assinatura (trialing, active, canceled, etc.)
+          const subscriptionStatus = subscription.status;
+          const isActive = ['active', 'trialing'].includes(subscriptionStatus);
 
           // Buscar data de término em múltiplos lugares (com validação)
           let subscriptionEnd;
           let periodEndTimestamp = null;
 
-          // Tentar obter de diferentes locais
-          if (subscription.current_period_end && !isNaN(subscription.current_period_end)) {
+          // Se estiver em trial, usar trial_end
+          if (subscriptionStatus === 'trialing' && subscription.trial_end) {
+            periodEndTimestamp = subscription.trial_end;
+            console.log(`Trial ativo - usando trial_end: ${periodEndTimestamp}`);
+          }
+          // Caso contrário, usar current_period_end
+          else if (subscription.current_period_end && !isNaN(subscription.current_period_end)) {
             periodEndTimestamp = subscription.current_period_end;
             console.log(`Usando current_period_end do subscription: ${periodEndTimestamp}`);
           } else if (subscription.items?.data?.[0]?.current_period_end) {
@@ -198,7 +223,9 @@ serve(async (req)=>{
             user_id: userId,
             email: customer.email,
             stripe_customer_id: subscription.customer,
+            stripe_subscription_id: subscription.id,
             subscribed: isActive,
+            subscription_status: subscriptionStatus,
             subscription_tier: tier,
             ai_requests_limit: getRequestLimit(tier),
             subscription_end: subscriptionEnd,
@@ -211,7 +238,7 @@ serve(async (req)=>{
             console.error(`Erro ao atualizar assinatura: ${error.message}`);
             throw new Error(`Erro ao atualizar assinatura: ${error.message}`);
           } else {
-            console.log(`Assinatura atualizada com sucesso para o usuário: ${userId}`);
+            console.log(`Assinatura atualizada com sucesso para o usuário: ${userId} (Status: ${subscriptionStatus})`);
           }
           break;
         }

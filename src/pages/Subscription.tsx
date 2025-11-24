@@ -6,7 +6,7 @@ import { Logo } from '@/components/Logo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Loader2, CreditCard, XCircle, Zap, Rocket, TrendingUp, BarChart3, AlertTriangle, DollarSign } from 'lucide-react';
+import { Check, Crown, Loader2, CreditCard, XCircle, Zap, Rocket, TrendingUp, BarChart3, AlertTriangle, DollarSign, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -90,12 +90,24 @@ const plans: Plan[] = [
 ];
 
 const Subscription = () => {
-  const { isSubscribed, subscriptionEnd, cancelAtPeriodEnd, checkSubscription, subscriptionTier } = useAuth();
+  const { isSubscribed, subscriptionEnd, cancelAtPeriodEnd, checkSubscription, subscriptionTier, subscriptionStatus } = useAuth();
   const [isLoading, setIsLoading] = useState<PlanType | null>(null);
   const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [canceledDate, setCanceledDate] = useState<string>('');
+
+  // Calcular dias restantes do trial ou assinatura
+  const calculateDaysRemaining = (endDate: string | null): number => {
+    if (!endDate) return 0;
+    const end = new Date(endDate);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const daysRemaining = calculateDaysRemaining(subscriptionEnd);
+  const isTrialing = subscriptionStatus === 'trialing';
 
   // Mapa de tiers para facilitar comparação
   const tierOrder: Record<string, number> = {
@@ -178,6 +190,11 @@ const Subscription = () => {
 
   // Função para determinar o texto do botão baseado no plano atual
   const getButtonText = (planId: PlanType): string => {
+    // Se não está inscrito e é o plano Basic, mostrar trial
+    if (!isSubscribed && planId === 'basic') {
+      return 'Começar Trial Grátis';
+    }
+
     if (!isSubscribed) return 'Assinar Agora';
 
     const currentTier = subscriptionTier || 'free';
@@ -229,7 +246,36 @@ const Subscription = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {cancelAtPeriodEnd && subscriptionEnd && (
+                  {/* Card de Trial Ativo */}
+                  {isTrialing && subscriptionEnd && (
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <Clock className="w-5 h-5 text-yellow-500" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-yellow-500 font-semibold">
+                            🎁 Trial Gratuito Ativo
+                          </p>
+                          <p className="text-sm text-white/80 mt-1">
+                            {daysRemaining > 0 ? (
+                              <>
+                                Você tem <span className="font-bold text-yellow-400">{daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'}</span> restantes de trial grátis!
+                              </>
+                            ) : (
+                              'Seu trial termina hoje!'
+                            )}
+                          </p>
+                          <p className="text-xs text-white/60 mt-2">
+                            Seu cartão será cobrado em <span className="font-semibold text-white/80">{new Date(subscriptionEnd).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Card de Cancelamento Agendado */}
+                  {cancelAtPeriodEnd && subscriptionEnd && !isTrialing && (
                     <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-4">
                       <p className="text-sm text-yellow-500 font-semibold flex items-center gap-2">
                         <XCircle className="w-4 h-4" />
@@ -240,7 +286,7 @@ const Subscription = () => {
                       </p>
                     </div>
                   )}
-                  {subscriptionEnd && !cancelAtPeriodEnd && (
+                  {subscriptionEnd && !cancelAtPeriodEnd && !isTrialing && (
                     <p className="text-sm text-white/60">
                       Renovação em: {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
                     </p>
@@ -281,8 +327,16 @@ const Subscription = () => {
                               Tem certeza que deseja cancelar?
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-white/60">
-                              Sua assinatura permanecerá ativa até o final do período de cobrança atual.
-                              Você perderá acesso aos recursos do plano após essa data.
+                              {isTrialing ? (
+                                <>
+                                  Você está em trial gratuito. Se cancelar agora, você continuará tendo acesso até o final do trial ({new Date(subscriptionEnd!).toLocaleDateString('pt-BR')}) e <span className="font-semibold text-white">não será cobrado</span>.
+                                </>
+                              ) : (
+                                <>
+                                  Sua assinatura permanecerá ativa até o final do período de cobrança atual.
+                                  Você perderá acesso aos recursos do plano após essa data.
+                                </>
+                              )}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -331,6 +385,13 @@ const Subscription = () => {
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
                     SEU PLANO ATUAL
+                  </Badge>
+                </div>
+              )}
+              {!isSubscribed && plan.id === 'basic' && (
+                <div className="absolute top-4 right-4 z-10">
+                  <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 text-xs font-bold">
+                    🎁 7 DIAS GRÁTIS
                   </Badge>
                 </div>
               )}
@@ -417,6 +478,13 @@ const Subscription = () => {
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
                     SEU PLANO ATUAL
+                  </Badge>
+                </div>
+              )}
+              {!isSubscribed && plan.id === 'basic' && (
+                <div className="absolute top-3 right-3 z-10">
+                  <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 text-xs font-bold">
+                    🎁 7 DIAS GRÁTIS
                   </Badge>
                 </div>
               )}

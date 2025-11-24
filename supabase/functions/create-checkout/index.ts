@@ -41,6 +41,24 @@ serve(async (req) => {
 
     logStep("Price ID received", { priceId });
 
+    // Verificar se usuário já teve assinatura (para bloquear trial)
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const { data: subscriberData } = await supabaseAdmin
+      .from('subscribers')
+      .select('stripe_subscription_id, subscription_tier')
+      .eq('user_id', user.id)
+      .single();
+
+    const hasHadSubscription = subscriberData?.stripe_subscription_id !== null;
+    logStep("Subscription history checked", {
+      hasHadSubscription,
+      currentTier: subscriberData?.subscription_tier
+    });
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2024-11-20.acacia"
     });
@@ -55,7 +73,21 @@ serve(async (req) => {
       logStep("No customer found, will create on checkout");
     }
 
-    const session = await stripe.checkout.sessions.create({
+    // Definir trial: 7 dias para Basic, apenas se nunca teve assinatura
+    const BASIC_PRICE_ID = "price_1SWm28A76CJavEvOTQu7kLC1";
+    const isBasicPlan = priceId === BASIC_PRICE_ID;
+    const shouldHaveTrial = isBasicPlan && !hasHadSubscription;
+    const trialDays = shouldHaveTrial ? 7 : 0;
+
+    logStep("Trial configuration", {
+      isBasicPlan,
+      hasHadSubscription,
+      shouldHaveTrial,
+      trialDays
+    });
+
+    // Criar configuração da sessão
+    const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       client_reference_id: user.id,
@@ -66,13 +98,29 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/dashboard?checkout=success`,
+      payment_method_collection: "always", // Força inserção de cartão mesmo com trial
+      success_url: `${req.headers.get("origin")}/dashboard?checkout=success${shouldHaveTrial ? '&trial=true' : ''}`,
       cancel_url: `${req.headers.get("origin")}/dashboard?checkout=canceled`,
       metadata: {
         price_id: priceId,
         user_id: user.id,
+        has_trial: shouldHaveTrial.toString(),
       },
-    });
+    };
+
+    // Adicionar trial apenas se aplicável
+    if (shouldHaveTrial) {
+      sessionConfig.subscription_data = {
+        trial_period_days: trialDays,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel' // Cancela se não houver cartão
+          }
+        }
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     logStep("Checkout session created", { sessionId: session.id });
 
