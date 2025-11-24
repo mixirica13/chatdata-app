@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
+import { useTracking } from '@/hooks/useTracking';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -21,12 +22,18 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated, initialize } = useAuth();
+  const [hasLoggedFirstLogin, setHasLoggedFirstLogin] = useState(false);
+  const { login, isAuthenticated, initialize, user } = useAuth();
   const navigate = useNavigate();
+  const { trackEvent, trackPageView, identifyUser } = useTracking();
 
   useEffect(() => {
     initialize();
   }, []);
+
+  useEffect(() => {
+    trackPageView('login_page');
+  }, [trackPageView]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -46,6 +53,25 @@ const Login = () => {
     setIsLoading(true);
     try {
       await login(data.email, data.password);
+
+      // Track login success - check if it's first login by checking created_at
+      if (user && !hasLoggedFirstLogin) {
+        const createdAt = new Date(user.created_at);
+        const now = new Date();
+        const daysSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+
+        // If account was created within the last minute, it's likely first login
+        if (daysSinceCreation < 0.001) {
+          trackEvent('first_login');
+          setHasLoggedFirstLogin(true);
+        }
+
+        // Identify user in PostHog
+        if (user.id) {
+          identifyUser(user.id);
+        }
+      }
+
       toast.success('Login realizado com sucesso!');
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao fazer login. Verifique suas credenciais.';

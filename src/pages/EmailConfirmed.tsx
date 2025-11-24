@@ -3,10 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Zap } from 'lucide-react';
+import { useTracking } from '@/hooks/useTracking';
 
 const EmailConfirmed = () => {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(5);
+  const { trackEvent, trackPageView } = useTracking();
+
+  useEffect(() => {
+    // Track email confirmation
+    trackPageView('email_confirmed_page');
+    trackEvent('email_confirmed');
+  }, [trackPageView, trackEvent]);
 
   useEffect(() => {
     const timer = setInterval(() => {

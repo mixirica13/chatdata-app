@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import '@/styles/phone-input.css';
+import { useTracking } from '@/hooks/useTracking';
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Nome muito longo'),
@@ -40,6 +41,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register: registerUser, isAuthenticated, initialize } = useAuth();
   const navigate = useNavigate();
+  const { trackEvent, trackPageView } = useTracking();
 
   useEffect(() => {
     initialize();
@@ -50,6 +52,11 @@ const Register = () => {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    trackPageView('registration_page');
+    trackEvent('registration_started');
+  }, [trackPageView, trackEvent]);
 
   const {
     register,
@@ -69,6 +76,13 @@ const Register = () => {
       await registerUser(data.name, data.email, data.password, data.whatsapp);
     } catch (error: any) {
       if (error.message === 'REGISTRATION_SUCCESS') {
+        // Track successful registration
+        trackEvent('registration_completed', {
+          whatsapp_provided: !!data.whatsapp,
+          email_domain: data.email.split('@')[1],
+        });
+        trackEvent('email_confirmation_sent');
+
         toast.success('Conta criada com sucesso!');
         navigate(`/confirm-email?email=${encodeURIComponent(data.email)}`);
       } else {

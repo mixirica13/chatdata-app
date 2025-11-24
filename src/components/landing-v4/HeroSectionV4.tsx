@@ -2,9 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { ArrowRight, MessageCircle, Smartphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTracking } from '@/hooks/useTracking';
 
 export const HeroSectionV4 = () => {
   const navigate = useNavigate();
+  const { trackEvent } = useTracking();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
@@ -115,7 +117,13 @@ export const HeroSectionV4 = () => {
             <Button
               size="lg"
               className="relative w-full bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] hover:from-[#52D9D3] hover:to-[#3AADA8] text-black font-bold px-8 py-7 text-xl rounded-3xl shadow-2xl shadow-[#46CCC6]/50 hover:shadow-[#46CCC6]/70 hover:scale-[1.02] transition-all group border-2 border-white/20"
-              onClick={() => navigate('/register')}
+              onClick={() => {
+                trackEvent('cta_clicked', {
+                  cta_text: 'Testar Grátis',
+                  cta_location: 'hero_section',
+                });
+                navigate('/register');
+              }}
             >
               Testar Grátis
               <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-1 transition-transform" />
