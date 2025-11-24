@@ -40,7 +40,7 @@ const EmailConfirmed = () => {
         <CardContent className="space-y-6">
           <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-4 rounded-lg">
             <p className="text-sm text-green-900 dark:text-green-100 text-center">
-              Parabéns! Agora você pode fazer login e começar a usar o Meta Aura.
+              Parabéns! Agora você pode fazer login e começar a usar o ChatData.
             </p>
           </div>
 

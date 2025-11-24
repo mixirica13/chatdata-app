@@ -239,7 +239,7 @@ export default function WhatsAppVerify() {
         {/* Logo */}
         <div className="flex flex-col items-center space-y-2">
           <Logo size="lg" />
-          <h1 className="text-2xl font-bold">Meta Aura</h1>
+          <h1 className="text-2xl font-bold">ChatData</h1>
         </div>
 
         {/* Card de Verificação */}

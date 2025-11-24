@@ -17,7 +17,7 @@ const Onboarding = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      toast.success('Configuração concluída! Bem-vindo ao Meta Aura.');
+      toast.success('Configuração concluída! Bem-vindo ao ChatData.');
       navigate('/dashboard');
     }
   };
@@ -51,7 +51,7 @@ const Onboarding = () => {
                     <Zap className="w-12 h-12 text-primary-foreground" />
                   </div>
                 </div>
-                <CardTitle className="text-3xl font-bold">Bem-vindo ao Meta Aura</CardTitle>
+                <CardTitle className="text-3xl font-bold">Bem-vindo ao ChatData</CardTitle>
                 <CardDescription className="text-base mt-2">
                   Receba insights inteligentes das suas campanhas de Meta Ads com análises automáticas
                 </CardDescription>

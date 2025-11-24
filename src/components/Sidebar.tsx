@@ -17,7 +17,7 @@ export const Sidebar = () => {
           <div className="bg-primary p-2 rounded-lg">
             <Zap className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg">Meta Aura</span>
+          <span className="font-bold text-lg">ChatData</span>
         </div>
         <nav className="flex-1 px-4 py-4 space-y-1">
           {navigation.map((item) => (
