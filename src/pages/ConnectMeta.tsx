@@ -9,14 +9,21 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Facebook, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useTracking } from '@/hooks/useTracking';
 
 const ConnectMeta = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { user, checkSubscription } = useAuth();
   const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
   const navigate = useNavigate();
+  const { trackEvent, trackPageView } = useTracking();
 
   const isConnected = !!authResponse;
+
+  // Track page view
+  useEffect(() => {
+    trackPageView('connect_meta_page');
+  }, [trackPageView]);
 
   // Automatically save token when user connects with Facebook
   useEffect(() => {
@@ -38,6 +45,12 @@ const ConnectMeta = () => {
 
         if (exchangeError) {
           console.error('Token exchange error:', exchangeError);
+
+          // Track connection failure
+          trackEvent('meta_connection_failed', {
+            error_type: exchangeError.message || 'token_exchange_error',
+          });
+
           toast.error('Erro ao salvar conexão. Tente novamente.');
           return;
         }
@@ -47,6 +60,13 @@ const ConnectMeta = () => {
         // Refresh user profile to update metaConnected flag
         await checkSubscription();
 
+        // Track successful connection
+        const permissions = authResponse.grantedScopes?.split(',') || [];
+        trackEvent('meta_connection_completed', {
+          ad_accounts_count: 0, // Will be updated when user selects accounts
+          permissions_granted: permissions,
+        });
+
         toast.success('Meta Ads conectado com sucesso!');
 
         // Navigate to dashboard after a short delay
@@ -55,6 +75,12 @@ const ConnectMeta = () => {
         }, 1000);
       } catch (error) {
         console.error('Error saving connection:', error);
+
+        // Track connection failure
+        trackEvent('meta_connection_failed', {
+          error_type: 'unexpected_error',
+        });
+
         toast.error('Erro ao salvar conexão. Tente novamente.');
       } finally {
         setIsSaving(false);
@@ -62,13 +88,22 @@ const ConnectMeta = () => {
     };
 
     saveConnection();
-  }, [authResponse, user]);
+  }, [authResponse, user, trackEvent]);
 
   const handleConnect = async () => {
     try {
+      // Track connection start
+      trackEvent('meta_connection_started');
+
       await login();
     } catch (error) {
       console.error('Connection error:', error);
+
+      // Track connection failure
+      trackEvent('meta_connection_failed', {
+        error_type: 'login_error',
+      });
+
       toast.error('Erro ao conectar com Meta');
     }
   };

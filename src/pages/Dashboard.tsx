@@ -17,8 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useTracking } from '@/hooks/useTracking';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +27,13 @@ const Dashboard = () => {
   const [showConnectionAlert, setShowConnectionAlert] = useState(false);
   const [showDisconnectMetaAlert, setShowDisconnectMetaAlert] = useState(false);
   const [showDisconnectWhatsappAlert, setShowDisconnectWhatsappAlert] = useState(false);
+  const { trackEvent, trackPageView } = useTracking();
+
+  // Track dashboard view
+  useEffect(() => {
+    trackPageView('dashboard');
+    trackEvent('dashboard_viewed');
+  }, [trackPageView, trackEvent]);
 
   const handleAgentClick = () => {
     if (!metaConnected || !whatsappConnected) {

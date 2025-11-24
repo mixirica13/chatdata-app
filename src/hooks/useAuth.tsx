@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { posthog } from '@/lib/posthog';
 
 interface AuthState {
   user: User | null;
@@ -172,6 +173,12 @@ export const useAuth = create<AuthState>()(
       },
 
       logout: async () => {
+        // Track logout event before clearing session
+        if (posthog.__loaded) {
+          posthog.capture('logout');
+          posthog.reset(); // Reset user identification
+        }
+
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
 

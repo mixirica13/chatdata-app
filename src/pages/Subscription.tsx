@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { LiquidGlass } from '@/components/LiquidGlass';
 import { BottomNav } from '@/components/BottomNav';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Loader2, CreditCard, XCircle, Zap, Rocket, TrendingUp, BarChart3, AlertTriangle, DollarSign, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useTracking } from '@/hooks/useTracking';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -96,6 +97,13 @@ const Subscription = () => {
   const [isCanceling, setIsCanceling] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [canceledDate, setCanceledDate] = useState<string>('');
+  const { trackEvent, trackPageView } = useTracking();
+
+  // Track page view
+  useEffect(() => {
+    trackPageView('subscription_page');
+    trackEvent('pricing_viewed');
+  }, [trackPageView, trackEvent]);
 
   // Calcular dias restantes do trial ou assinatura
   const calculateDaysRemaining = (endDate: string | null): number => {
@@ -119,6 +127,18 @@ const Subscription = () => {
 
   const handleSubscribe = async (priceId: string, planId: PlanType) => {
     setIsLoading(planId);
+
+    // Get plan details
+    const selectedPlan = plans.find(p => p.id === planId);
+    const planPrice = parseInt(selectedPlan?.price.replace(/\D/g, '') || '0');
+
+    // Track plan selection
+    trackEvent('plan_selected', {
+      plan_tier: planId,
+      plan_price: planPrice,
+      is_trial: false, // Trial detection would need to be implemented
+    });
+
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId }
@@ -127,6 +147,12 @@ const Subscription = () => {
       if (error) throw error;
 
       if (data?.url) {
+        // Track checkout start
+        trackEvent('checkout_started', {
+          plan_tier: planId,
+          plan_price: planPrice,
+        });
+
         window.location.href = data.url;
         toast.success('Redirecionando para o checkout...');
       } else {

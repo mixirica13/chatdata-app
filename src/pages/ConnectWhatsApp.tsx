@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { MessageCircle, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTracking } from '@/hooks/useTracking';
 
 const ConnectWhatsApp = () => {
   const [phone, setPhone] = useState('');
@@ -17,6 +18,12 @@ const ConnectWhatsApp = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { trackEvent, trackPageView } = useTracking();
+
+  // Track page view
+  useEffect(() => {
+    trackPageView('connect_whatsapp_page');
+  }, [trackPageView]);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -46,6 +53,9 @@ const ConnectWhatsApp = () => {
 
     setIsLoading(true);
 
+    // Track connection start
+    trackEvent('whatsapp_connection_started');
+
     try {
       const fullPhone = `55${cleanPhone}`;
 
@@ -69,10 +79,21 @@ const ConnectWhatsApp = () => {
         // Iniciar polling para verificar se o usuário clicou no link
         startVerificationPolling();
       } else {
+        // Track failure
+        trackEvent('whatsapp_connection_failed', {
+          error_type: 'send_link_failed',
+        });
+
         throw new Error(data.message || 'Erro ao enviar link');
       }
     } catch (error) {
       console.error('Erro ao enviar magic link:', error);
+
+      // Track failure
+      trackEvent('whatsapp_connection_failed', {
+        error_type: 'network_error',
+      });
+
       toast.error('Erro ao enviar link. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -95,6 +116,12 @@ const ConnectWhatsApp = () => {
       if (profile?.whatsapp_connected) {
         clearInterval(interval);
         setIsVerifying(false);
+
+        // Track successful connection
+        trackEvent('whatsapp_connection_completed', {
+          phone_number_hash: profile.whatsapp_phone ? `***${profile.whatsapp_phone.slice(-4)}` : undefined,
+        });
+
         toast.success('WhatsApp autenticado com sucesso!');
         navigate('/dashboard');
       }
