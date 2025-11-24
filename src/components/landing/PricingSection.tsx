@@ -5,57 +5,55 @@ import { useNavigate } from 'react-router-dom';
 
 const plans = [
   {
-    name: 'Starter',
+    name: 'Basic',
     icon: Zap,
+    price: 'R$ 47',
+    period: '/mês',
+    description: 'Ideal para começar com IA',
+    features: [
+      'Acesso à IA ChatData no WhatsApp',
+      'Dashboard geral com métricas principais',
+      '50 requisições/dia',
+    ],
+    cta: 'Testar 7 Dias Grátis',
+    popular: true,
+    order: 1, // Primeiro no mobile, centro no desktop
+  },
+  {
+    name: 'Pro',
+    icon: Crown,
     price: 'R$ 97',
     period: '/mês',
-    description: 'Perfeito para começar',
+    description: 'Para profissionais que buscam mais',
     features: [
-      '1 conta Meta Ads conectada',
-      '1 número WhatsApp',
-      'Relatórios diários por IA',
-      'Suporte por email',
-      'Dashboard básico',
+      'Acesso à IA ChatData no WhatsApp',
+      'Dashboard customizável',
+      'Burn-up chart para acompanhamento',
+      'Controle de gastos detalhado',
+      'Alerta de saldo para contas pré-pagas',
+      '100 requisições/dia',
     ],
-    cta: 'Começar Grátis',
+    cta: 'Assinar Agora',
     popular: false,
+    order: 2, // Segundo no mobile, terceiro no desktop
   },
   {
-    name: 'Professional',
-    icon: Crown,
+    name: 'Agency',
+    icon: Rocket,
     price: 'R$ 197',
     period: '/mês',
-    description: 'Mais popular entre profissionais',
+    description: 'Solução completa para agências',
     features: [
-      '3 contas Meta Ads',
-      '2 números WhatsApp',
-      'Relatórios em tempo real',
-      'Suporte prioritário',
-      'Dashboard avançado',
+      'Todos os recursos do Pro',
+      'Dashboard customizável avançado',
+      'Burn-up chart detalhado',
+      'Controle completo de gastos',
       'Alertas personalizados',
-      'Exportação de dados',
+      'Requisições ilimitadas',
     ],
-    cta: 'Começar Teste Grátis',
-    popular: true,
-  },
-  {
-    name: 'Enterprise',
-    icon: Rocket,
-    price: 'R$ 397',
-    period: '/mês',
-    description: 'Para agências e empresas',
-    features: [
-      'Contas Meta Ads ilimitadas',
-      'WhatsApp ilimitado',
-      'IA personalizada',
-      'Suporte dedicado 24/7',
-      'Dashboard white-label',
-      'API de integração',
-      'Consultoria mensal',
-      'Treinamento da equipe',
-    ],
-    cta: 'Falar com Vendas',
+    cta: 'Assinar Agora',
     popular: false,
+    order: 3, // Terceiro no mobile, segundo no desktop (antes do popular)
   },
 ];
 
@@ -72,17 +70,22 @@ export const PricingSection = () => {
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6" style={{ fontFamily: 'Exo 2, sans-serif' }}>
             Escolha o plano <span className="text-[#46CCC6]">ideal</span> para você
           </h2>
-          <p className="text-lg text-white/70 max-w-2xl mx-auto mb-4">
-            Todos os planos incluem 14 dias de teste grátis. Cancele quando quiser.
-          </p>
-          <p className="text-[#46CCC6] font-semibold">
-            🎉 50% OFF nos primeiros 3 meses para novos usuários
+          <p className="text-lg text-white/70 max-w-2xl mx-auto">
+            Cancele quando quiser, sem complicação.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {/* Mobile: Basic primeiro | Desktop: Agency, Basic (centro), Pro */}
           {plans.map((plan, index) => (
-            <div key={index} className="relative">
+            <div
+              key={index}
+              className={`relative ${
+                plan.name === 'Basic' ? 'order-1 md:order-2' :
+                plan.name === 'Agency' ? 'order-3 md:order-1' :
+                'order-2 md:order-3'
+              }`}
+            >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                   <div className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] text-black px-4 py-1 rounded-full text-sm font-bold">
@@ -150,12 +153,11 @@ export const PricingSection = () => {
           ))}
         </div>
 
-        {/* Money back guarantee */}
+        {/* Trial info */}
         <div className="mt-12 text-center">
           <LiquidGlass className="max-w-2xl mx-auto p-6">
             <p className="text-white/80">
-              <span className="font-semibold text-[#46CCC6]">Garantia de 30 dias:</span> Se você não estiver
-              satisfeito, devolvemos 100% do seu dinheiro, sem perguntas.
+              <span className="font-semibold text-[#46CCC6]">7 dias para testar:</span> Experimente o plano Basic gratuitamente por 7 dias. Cancele quando quiser, sem compromisso.
             </p>
           </LiquidGlass>
         </div>

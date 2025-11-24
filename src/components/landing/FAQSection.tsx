@@ -9,7 +9,7 @@ import {
 const faqs = [
   {
     question: 'Como funciona o período de teste grátis?',
-    answer: 'Você tem 14 dias para testar o ChatData sem compromisso. Não pedimos cartão de crédito no cadastro. Explore todas as funcionalidades e decida se é para você.',
+    answer: 'Você tem 7 dias para testar o plano Basic sem compromisso. Não pedimos cartão de crédito no cadastro. Explore todas as funcionalidades e decida se é para você.',
   },
   {
     question: 'Meus dados estão seguros?',

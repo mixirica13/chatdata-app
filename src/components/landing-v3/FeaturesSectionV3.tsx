@@ -67,7 +67,7 @@ export const FeaturesSectionV3 = () => {
             Simplicidade que <span className="text-[#46CCC6]">você já conhece</span>
           </h2>
           <p className="text-lg text-white/70 max-w-3xl mx-auto">
-            Por que complicar? Você já sabe usar WhatsApp. Agora ele também é sua ferramenta de análise de dados mais poderosa.
+            Por que complicar? Você já usa o WhatsApp no seu dia a dia. Agora ele também é sua ferramenta de análise de dados mais poderosa.
           </p>
         </div>
 

@@ -5,8 +5,8 @@ const steps = [
   {
     number: '01',
     icon: Smartphone,
-    title: 'Conecte seu WhatsApp',
-    description: 'Escaneie um QR Code com seu WhatsApp. É tudo que você precisa fazer. Leva menos de 30 segundos.',
+    title: 'Verifique seu WhatsApp',
+    description: 'Simples, rápido e seguro. Leva menos de 30 segundos.',
   },
   {
     number: '02',

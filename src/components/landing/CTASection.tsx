@@ -35,7 +35,7 @@ export const CTASection = () => {
               className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] hover:opacity-90 text-black font-semibold px-10 py-7 text-lg rounded-xl shadow-lg shadow-[#46CCC6]/25 group"
               onClick={() => navigate('/register')}
             >
-              Começar Teste Grátis de 14 Dias
+              Começar Teste Grátis de 7 Dias
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>

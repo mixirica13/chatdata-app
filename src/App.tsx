@@ -23,6 +23,7 @@ import WhatsAppLogin from "./pages/WhatsAppLogin";
 import LandingPage from "./pages/LandingPage";
 import LandingPageV2 from "./pages/LandingPageV2";
 import LandingPageV3 from "./pages/LandingPageV3";
+import LandingPageV4 from "./pages/LandingPageV4";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import DataDeletion from "./pages/DataDeletion";
@@ -66,9 +67,10 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LandingPageV3 />} />
+            <Route path="/" element={<LandingPageV4 />} />
             <Route path="/lp-v1" element={<LandingPage />} />
             <Route path="/lp-v2" element={<LandingPageV2 />} />
+            <Route path="/lp-v3" element={<LandingPageV3 />} />
             <Route path="/termos" element={<TermsOfService />} />
             <Route path="/privacidade" element={<PrivacyPolicy />} />
             <Route path="/exclusao-dados" element={<DataDeletion />} />
