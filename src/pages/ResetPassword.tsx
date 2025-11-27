@@ -78,14 +78,11 @@ const ResetPassword = () => {
 
       toast.success('Senha redefinida com sucesso! Redirecionando...');
 
-      // Wait a moment for the toast to show, then navigate
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Wait a moment for the toast to show
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Sign out to clear the session
-      await supabase.auth.signOut();
-
-      // Navigate to login page
-      navigate('/login');
+      // Force page reload to login to avoid auth state issues
+      window.location.href = '/login';
     } catch (error: any) {
       console.error('Erro ao redefinir senha:', error);
 
