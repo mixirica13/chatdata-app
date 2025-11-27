@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { LiquidGlass } from '@/components/LiquidGlass';
 import { BottomNav } from '@/components/BottomNav';
@@ -98,11 +98,15 @@ const Subscription = () => {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [canceledDate, setCanceledDate] = useState<string>('');
   const { trackEvent, trackPageView } = useTracking();
+  const hasTrackedPageView = useRef(false);
 
-  // Track page view
+  // Track page view (only once, even with React Strict Mode)
   useEffect(() => {
-    trackPageView('subscription_page');
-    trackEvent('pricing_viewed');
+    if (!hasTrackedPageView.current) {
+      trackPageView('subscription_page');
+      trackEvent('pricing_viewed');
+      hasTrackedPageView.current = true;
+    }
   }, [trackPageView, trackEvent]);
 
   // Calcular dias restantes do trial ou assinatura

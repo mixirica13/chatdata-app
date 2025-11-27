@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,6 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -27,6 +26,7 @@ const ForgotPassword = () => {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
   } = useForm<ForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
   });
@@ -41,9 +41,9 @@ const ForgotPassword = () => {
       if (error) throw error;
 
       setEmailSent(true);
-      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      toast.success('Email de recuperação enviado com sucesso!');
     } catch (error: any) {
-      console.error('Error sending password reset email:', error);
+      console.error('Erro ao solicitar reset de senha:', error);
       toast.error('Erro ao enviar email de recuperação. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -58,16 +58,40 @@ const ForgotPassword = () => {
             <div className="flex justify-center mb-6">
               <Logo className="h-16 w-auto" />
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Email enviado!</CardTitle>
+            <CardTitle className="text-2xl font-bold text-white">Email Enviado</CardTitle>
             <CardDescription className="text-white/60">
-              Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
+              Verifique sua caixa de entrada
             </CardDescription>
           </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-white/80">
+                Enviamos um link de recuperação para <strong className="text-white">{getValues('email')}</strong>
+              </p>
+              <p className="text-sm text-white/60">
+                Clique no link no email para redefinir sua senha. O link expira em 1 hora.
+              </p>
+            </div>
+          </CardContent>
           <CardFooter className="flex flex-col space-y-2">
             <Link to="/login" className="w-full">
               <Button variant="outline" className="w-full border-white/10 text-white hover:bg-white/5">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar para o login
+                Voltar para Login
               </Button>
             </Link>
           </CardFooter>
@@ -85,7 +109,7 @@ const ForgotPassword = () => {
           </div>
           <CardTitle className="text-2xl font-bold text-white">Esqueceu sua senha?</CardTitle>
           <CardDescription className="text-white/60">
-            Digite seu email e enviaremos instruções para redefinir sua senha
+            Digite seu email para receber um link de recuperação
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -104,15 +128,18 @@ const ForgotPassword = () => {
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold" disabled={isLoading}>
-              {isLoading ? <LoadingSpinner size="sm" /> : 'Enviar instruções'}
+            <Button
+              type="submit"
+              className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? <LoadingSpinner size="sm" /> : 'Enviar Link de Recuperação'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <Link to="/login" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar para o login
+          <Link to="/login" className="text-sm text-white/60 hover:text-white text-center">
+            ← Voltar para Login
           </Link>
         </CardFooter>
       </Card>

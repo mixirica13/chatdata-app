@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Exo+2:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #000000;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 40px 40px;
+            background-color: #000000;
+            position: relative;
+        }
+
+        .logo {
+            position: relative;
+            z-index: 1;
+            width: 180px;
+            height: auto;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .title {
+            position: relative;
+            z-index: 1;
+            font-family: 'Exo 2', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 20px;
+            color: #ffffff;
+        }
+
+        .subtitle {
+            position: relative;
+            z-index: 1;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+        }
+
+        .content {
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #ffffff;
+            margin: 0 0 25px;
+        }
+
+        .text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0 0 25px;
+            line-height: 1.7;
+        }
+
+        .cta-wrapper {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 45px;
+            background: linear-gradient(90deg, #46CCC6 0%, #2D9B96 100%);
+            color: #000000 !important;
+            text-decoration: none !important;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 10px 30px rgba(70, 204, 198, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:visited {
+            color: #000000 !important;
+        }
+
+        .cta-button:hover {
+            color: #000000 !important;
+        }
+
+        .cta-button:active {
+            color: #000000 !important;
+        }
+
+        .features {
+            background-color: rgba(255, 255, 255, 0.02);
+            padding: 30px 40px;
+            margin: 0;
+        }
+
+        .feature-grid {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .feature-row {
+            display: table-row;
+        }
+
+        .feature-icon-cell {
+            display: table-cell;
+            width: 50px;
+            vertical-align: top;
+            padding: 10px 15px 10px 0;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+        }
+
+        .feature-content-cell {
+            display: table-cell;
+            vertical-align: top;
+            padding: 10px 0;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #46CCC6;
+            margin: 0 0 5px;
+        }
+
+        .feature-description {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0;
+        }
+
+        .footer {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 0 0 15px;
+        }
+
+        .footer-links {
+            margin: 20px 0;
+        }
+
+        .footer-link {
+            color: #46CCC6;
+            text-decoration: none;
+            font-size: 13px;
+            margin: 0 10px;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 30px 0;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .header {
+                padding: 30px 25px 30px;
+            }
+
+            .title {
+                font-size: 26px;
+            }
+
+            .content,
+            .features,
+            .footer {
+                padding: 25px;
+            }
+
+            .cta-button {
+                padding: 16px 35px;
+                font-size: 15px;
+            }
+
+            .logo {
+                width: 150px;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <img src="https://qcohdtsvvahebfciuklc.supabase.co/storage/v1/object/public/emails/logo-chatdata.png" alt="ChatData Logo" class="logo">
+            <h1 class="title">Você foi convidado!</h1>
+            <p class="subtitle">Seu analista de IA no WhatsApp te espera</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <p class="greeting">Olá!</p>
+
+            <p class="text">
+                Você foi convidado para criar uma conta no {{ .SiteURL }}.
+            </p>
+
+            <p class="text">
+                O ChatData é seu novo analista de IA que trabalha 100% direto no WhatsApp.
+                Converse com seus dados do Meta Ads como se estivesse falando com um especialista.
+            </p>
+
+            <div class="cta-wrapper">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">
+                    Aceitar Convite e Conectar WhatsApp
+                </a>
+            </div>
+
+            <p class="text">
+                Após aceitar o convite, você poderá conectar seu WhatsApp e começar a conversar
+                com seus dados imediatamente. Sem app para baixar, sem dashboard complicado.
+            </p>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <div class="feature-grid">
+                <div class="feature-row">
+                    <div class="feature-icon-cell">
+                        <div class="feature-icon">💬</div>
+                    </div>
+                    <div class="feature-content-cell">
+                        <p class="feature-title">Análise Conversacional</p>
+                        <p class="feature-description">
+                            Pergunte sobre suas métricas em linguagem natural
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-row">
+                    <div class="feature-icon-cell">
+                        <div class="feature-icon">📊</div>
+                    </div>
+                    <div class="feature-content-cell">
+                        <p class="feature-title">Insights em Tempo Real</p>
+                        <p class="feature-description">
+                            Receba análises instantâneas sobre suas campanhas
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-row">
+                    <div class="feature-icon-cell">
+                        <div class="feature-icon">🚀</div>
+                    </div>
+                    <div class="feature-content-cell">
+                        <p class="feature-title">100% no WhatsApp</p>
+                        <p class="feature-description">
+                            Nenhum app para baixar, só você e o WhatsApp
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-row">
+                    <div class="feature-icon-cell">
+                        <div class="feature-icon">🔒</div>
+                    </div>
+                    <div class="feature-content-cell">
+                        <p class="feature-title">Totalmente Seguro</p>
+                        <p class="feature-description">
+                            Seus dados protegidos com criptografia de ponta a ponta
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="divider"></div>
+
+            <p class="footer-text">
+                Este convite foi enviado para você através do {{ .SiteURL }}
+            </p>
+
+            <div class="footer-links">
+                <a href="{{ .SiteURL }}/privacy" class="footer-link">Política de Privacidade</a>
+                <span style="color: rgba(255, 255, 255, 0.3);">•</span>
+                <a href="{{ .SiteURL }}/terms" class="footer-link">Termos de Uso</a>
+            </div>
+
+            <p class="footer-text">
+                © 2025 ChatData. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
