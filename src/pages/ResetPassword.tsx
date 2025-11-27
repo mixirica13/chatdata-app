@@ -11,7 +11,6 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useTracking } from '@/hooks/useTracking';
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(100, 'Senha muito longa'),
@@ -28,12 +27,10 @@ const ResetPassword = () => {
   const [isValidToken, setIsValidToken] = useState(false);
   const [isCheckingToken, setIsCheckingToken] = useState(true);
   const navigate = useNavigate();
-  const { trackEvent, trackPageView } = useTracking();
 
   useEffect(() => {
-    trackPageView('reset_password_page');
     checkSession();
-  }, [trackPageView]);
+  }, []);
 
   const checkSession = async () => {
     try {
@@ -66,13 +63,18 @@ const ResetPassword = () => {
   const onSubmit = async (data: ResetPasswordForm) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
+      console.log('Attempting to update password...');
+
+      const { data: updateData, error } = await supabase.auth.updateUser({
         password: data.password,
       });
 
-      if (error) throw error;
+      console.log('Update result:', { data: updateData, error });
 
-      trackEvent('password_reset_completed');
+      if (error) {
+        console.error('Update user error:', error);
+        throw error;
+      }
 
       toast.success('Senha redefinida com sucesso!');
 
@@ -82,10 +84,10 @@ const ResetPassword = () => {
       setTimeout(() => navigate('/login'), 1500);
     } catch (error: any) {
       console.error('Erro ao redefinir senha:', error);
-      trackEvent('password_reset_failed', {
-        error: error.message,
-      });
-      toast.error('Erro ao redefinir senha. Tente novamente.');
+
+      // Show more specific error message
+      const errorMessage = error.message || 'Erro ao redefinir senha. Tente novamente.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -11,7 +11,6 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useTracking } from '@/hooks/useTracking';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -22,11 +21,6 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const { trackEvent, trackPageView } = useTracking();
-
-  useEffect(() => {
-    trackPageView('forgot_password_page');
-  }, [trackPageView]);
 
   const {
     register,
@@ -46,17 +40,10 @@ const ForgotPassword = () => {
 
       if (error) throw error;
 
-      trackEvent('password_reset_requested', {
-        email: data.email,
-      });
-
       setEmailSent(true);
       toast.success('Email de recuperação enviado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao solicitar reset de senha:', error);
-      trackEvent('password_reset_request_failed', {
-        error: error.message,
-      });
       toast.error('Erro ao enviar email de recuperação. Tente novamente.');
     } finally {
       setIsLoading(false);
