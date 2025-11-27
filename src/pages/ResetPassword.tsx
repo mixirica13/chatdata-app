@@ -76,19 +76,22 @@ const ResetPassword = () => {
         throw error;
       }
 
-      toast.success('Senha redefinida com sucesso!');
+      toast.success('Senha redefinida com sucesso! Redirecionando...');
 
-      // Sign out to force new login with new password
+      // Wait a moment for the toast to show, then navigate
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Sign out to clear the session
       await supabase.auth.signOut();
 
-      setTimeout(() => navigate('/login'), 1500);
+      // Navigate to login page
+      navigate('/login');
     } catch (error: any) {
       console.error('Erro ao redefinir senha:', error);
 
       // Show more specific error message
       const errorMessage = error.message || 'Erro ao redefinir senha. Tente novamente.';
       toast.error(errorMessage);
-    } finally {
       setIsLoading(false);
     }
   };
