@@ -132,24 +132,46 @@ export const useAuth = create<AuthState>()(
         }
 
         if (data.user) {
-          const { data: profile } = await supabase
-            .from('subscribers')
-            .select('*')
-            .eq('user_id', data.user.id)
-            .single();
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from('subscribers')
+              .select('*')
+              .eq('user_id', data.user.id)
+              .single();
 
-          set({
-            user: data.user,
-            profile,
-            isAuthenticated: true,
-            isSubscribed: profile?.subscribed || false,
-            subscriptionEnd: profile?.subscription_end,
-            subscriptionTier: profile?.subscription_tier || null,
-            subscriptionStatus: profile?.subscription_status || null,
-            cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
-            metaConnected: profile?.meta_connected || false,
-            whatsappConnected: profile?.whatsapp_connected || false,
-          });
+            if (profileError) {
+              console.error('Error fetching subscriber profile:', profileError);
+              // Continue login even if profile fetch fails
+            }
+
+            set({
+              user: data.user,
+              profile: profile || null,
+              isAuthenticated: true,
+              isSubscribed: profile?.subscribed || false,
+              subscriptionEnd: profile?.subscription_end || null,
+              subscriptionTier: profile?.subscription_tier || null,
+              subscriptionStatus: profile?.subscription_status || null,
+              cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
+              metaConnected: profile?.meta_connected || false,
+              whatsappConnected: profile?.whatsapp_connected || false,
+            });
+          } catch (profileError) {
+            console.error('Unexpected error fetching profile:', profileError);
+            // Set authenticated state without profile
+            set({
+              user: data.user,
+              profile: null,
+              isAuthenticated: true,
+              isSubscribed: false,
+              subscriptionEnd: null,
+              subscriptionTier: null,
+              subscriptionStatus: null,
+              cancelAtPeriodEnd: false,
+              metaConnected: false,
+              whatsappConnected: false,
+            });
+          }
         }
       },
 

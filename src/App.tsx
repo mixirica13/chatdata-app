@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import EmailConfirmed from "./pages/EmailConfirmed";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import MetaAdsDashboard from "./pages/MetaAdsDashboard";
@@ -76,6 +78,8 @@ const App = () => {
             <Route path="/exclusao-dados" element={<DataDeletion />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/whatsapp-login" element={<WhatsAppLogin />} />
             <Route path="/auth/verify" element={<WhatsAppVerify />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
