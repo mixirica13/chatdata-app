@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,10 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(10);
   const [debugStatus, setDebugStatus] = useState<string>("Initializing...");
   const navigate = useNavigate();
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Check if we have a session or if we are in the process of recovering
@@ -64,6 +66,27 @@ export default function ResetPassword() {
     };
   }, [navigate]);
 
+  // Countdown timer and auto-redirect after success
+  useEffect(() => {
+    if (showSuccess) {
+      // Start countdown
+      const countdownInterval = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            navigate('/login');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearInterval(countdownInterval);
+      };
+    }
+  }, [showSuccess, navigate]);
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -107,6 +130,12 @@ export default function ResetPassword() {
       }
 
       console.log("Password updated successfully");
+
+      // IMPORTANTE: Fazer logout após redefinir senha por segurança
+      // O usuário deve fazer login novamente com a nova senha
+      await supabase.auth.signOut();
+      console.log("User signed out after password reset");
+
       setShowSuccess(true);
     } catch (error: any) {
       console.error("Error resetting password:", error);
@@ -214,13 +243,15 @@ export default function ResetPassword() {
               Senha alterada com sucesso!
             </DialogTitle>
             <DialogDescription className="text-center text-white/60 mb-6">
-              Sua senha foi redefinida com segurança. Você já pode acessar sua conta com a nova senha.
+              Sua senha foi redefinida com segurança. Faça login novamente com sua nova senha.
+              <br />
+              <span className="text-[#46CCC6] font-semibold">Redirecionando em {countdown}s...</span>
             </DialogDescription>
             <Button
               onClick={() => navigate('/login')}
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold h-12"
             >
-              Ir para Login
+              Ir para Login agora
             </Button>
           </div>
         </DialogContent>
