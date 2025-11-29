@@ -69,21 +69,29 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Buscar todas as subscriptions e filtrar por status ativo ou trialing
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 100, // Aumentar para pegar todas
     });
-    
-    const hasActiveSub = subscriptions.data.length > 0;
+
+    // Considerar tanto 'active' quanto 'trialing' como assinaturas válidas
+    const activeSubscriptions = subscriptions.data.filter(sub =>
+      ['active', 'trialing'].includes(sub.status)
+    );
+    const hasActiveSub = activeSubscriptions.length > 0;
     let subscriptionEnd = null;
     let subscriptionId = null;
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+      const subscription = activeSubscriptions[0];
       subscriptionId = subscription.id;
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId, endDate: subscriptionEnd });
+      // Se estiver em trial, usar trial_end; caso contrário usar current_period_end
+      const endTimestamp = subscription.status === 'trialing' && subscription.trial_end
+        ? subscription.trial_end
+        : subscription.current_period_end;
+      subscriptionEnd = new Date(endTimestamp * 1000).toISOString();
+      logStep("Active subscription found", { subscriptionId, status: subscription.status, endDate: subscriptionEnd });
       
       // Update subscriber with active subscription
       await supabaseClient
