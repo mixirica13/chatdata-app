@@ -165,6 +165,13 @@ serve(async (req)=>{
           }
           break;
         }
+      case "customer.subscription.created":
+        {
+          // IGNORAR este evento - o checkout.session.completed já faz tudo que precisamos
+          // Este evento chega antes do checkout completar e não tem todas as informações
+          console.log(`Evento customer.subscription.created ignorado - aguardando checkout.session.completed`);
+          break;
+        }
       case "customer.subscription.updated":
         {
           const subscription = event.data.object;
@@ -217,23 +224,23 @@ serve(async (req)=>{
             break;
           }
           const userId = subscribers[0].user_id;
-          // Atualizar o registro na tabela subscribers
+          // Atualizar o registro na tabela subscribers (usando UPDATE ao invés de upsert)
           const tier = getPlanTier(priceId);
-          const { error } = await supabase.from('subscribers').upsert({
-            user_id: userId,
-            email: customer.email,
-            stripe_customer_id: subscription.customer,
-            stripe_subscription_id: subscription.id,
-            subscribed: isActive,
-            subscription_status: subscriptionStatus,
-            subscription_tier: tier,
-            ai_requests_limit: getRequestLimit(tier),
-            subscription_end: subscriptionEnd,
-            cancel_at_period_end: subscription.cancel_at_period_end || false,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
+          const { error } = await supabase
+            .from('subscribers')
+            .update({
+              email: customer.email,
+              stripe_customer_id: subscription.customer,
+              stripe_subscription_id: subscription.id,
+              subscribed: isActive,
+              subscription_status: subscriptionStatus,
+              subscription_tier: tier,
+              ai_requests_limit: getRequestLimit(tier),
+              subscription_end: subscriptionEnd,
+              cancel_at_period_end: subscription.cancel_at_period_end || false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId);
           if (error) {
             console.error(`Erro ao atualizar assinatura: ${error.message}`);
             throw new Error(`Erro ao atualizar assinatura: ${error.message}`);
@@ -255,17 +262,17 @@ serve(async (req)=>{
             break;
           }
           const userId = subscribers[0].user_id;
-          // Atualizar o registro na tabela subscribers
-          const { error } = await supabase.from('subscribers').upsert({
-            user_id: userId,
-            email: customer.email,
-            stripe_customer_id: subscription.customer,
-            subscribed: false,
-            subscription_end: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
+          // Atualizar o registro na tabela subscribers (usando UPDATE ao invés de upsert)
+          const { error } = await supabase
+            .from('subscribers')
+            .update({
+              email: customer.email,
+              stripe_customer_id: subscription.customer,
+              subscribed: false,
+              subscription_end: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId);
           if (error) {
             console.error(`Erro ao atualizar assinatura: ${error.message}`);
             throw new Error(`Erro ao atualizar assinatura: ${error.message}`);
@@ -320,21 +327,22 @@ serve(async (req)=>{
               break;
             }
             const userId = subscribers[0].user_id;
-            // Atualizar o registro na tabela subscribers
+            // Atualizar o registro na tabela subscribers (usando UPDATE ao invés de upsert)
             const tier = getPlanTier(priceId);
-            const { error } = await supabase.from('subscribers').upsert({
-              user_id: userId,
-              email: customer.email,
-              stripe_customer_id: invoice.customer,
-              subscribed: true,
-              subscription_tier: tier,
-              ai_requests_limit: getRequestLimit(tier),
-              subscription_end: subscriptionEnd,
-              cancel_at_period_end: subscription.cancel_at_period_end || false,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'user_id'
-            });
+            const { error } = await supabase
+              .from('subscribers')
+              .update({
+                email: customer.email,
+                stripe_customer_id: invoice.customer,
+                stripe_subscription_id: subscription.id,
+                subscribed: true,
+                subscription_tier: tier,
+                ai_requests_limit: getRequestLimit(tier),
+                subscription_end: subscriptionEnd,
+                cancel_at_period_end: subscription.cancel_at_period_end || false,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', userId);
             if (error) {
               console.error(`Erro ao atualizar assinatura: ${error.message}`);
               throw new Error(`Erro ao atualizar assinatura: ${error.message}`);
