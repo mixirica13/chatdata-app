@@ -140,23 +140,23 @@ serve(async (req)=>{
             subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
           }
 
-          // Atualizar ou inserir registro na tabela subscribers
+          // Atualizar registro na tabela subscribers (usando UPDATE ao invés de upsert)
           const tier = getPlanTier(session.metadata.price_id);
-          const { error } = await supabase.from('subscribers').upsert({
-            user_id: session.client_reference_id,
-            email: customer.email,
-            stripe_customer_id: session.customer,
-            stripe_subscription_id: stripeSubscriptionId,
-            subscribed: true, // Tem acesso mesmo durante trial
-            subscription_status: subscriptionStatus,
-            subscription_tier: tier,
-            ai_requests_limit: getRequestLimit(tier),
-            subscription_end: subscriptionEnd,
-            cancel_at_period_end: false,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id'
-          });
+          const { error } = await supabase
+            .from('subscribers')
+            .update({
+              email: customer.email,
+              stripe_customer_id: session.customer,
+              stripe_subscription_id: stripeSubscriptionId,
+              subscribed: true, // Tem acesso mesmo durante trial
+              subscription_status: subscriptionStatus,
+              subscription_tier: tier,
+              ai_requests_limit: getRequestLimit(tier),
+              subscription_end: subscriptionEnd,
+              cancel_at_period_end: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', session.client_reference_id);
           if (error) {
             console.error(`Erro ao atualizar assinatura: ${error.message}`);
             throw new Error(`Erro ao atualizar assinatura: ${error.message}`);

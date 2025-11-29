@@ -140,13 +140,23 @@ const Subscription = () => {
     trackEvent('plan_selected', {
       plan_tier: planId,
       plan_price: planPrice,
-      is_trial: false, // Trial detection would need to be implemented
+      is_trial: false,
     });
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      // Mostrar toast ANTES de chamar a função
+      toast.loading('Criando checkout...', { id: 'checkout' });
+
+      // Timeout de 15 segundos
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout: A requisição demorou muito')), 15000)
+      );
+
+      const invokePromise = supabase.functions.invoke('create-checkout', {
         body: { priceId }
       });
+
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
 
       if (error) throw error;
 
@@ -157,34 +167,47 @@ const Subscription = () => {
           plan_price: planPrice,
         });
 
+        toast.success('Redirecionando...', { id: 'checkout' });
+
+        // Redirect imediatamente
         window.location.href = data.url;
-        toast.success('Redirecionando para o checkout...');
       } else {
-        toast.error('Erro: Nenhuma URL de checkout retornada');
+        toast.error('Erro: Nenhuma URL de checkout retornada', { id: 'checkout' });
+        setIsLoading(null);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao iniciar checkout');
-    } finally {
+      console.error('Checkout error:', error);
+      toast.error(error.message || 'Erro ao iniciar checkout. Tente novamente.', { id: 'checkout' });
       setIsLoading(null);
     }
   };
 
   const handleManagePayment = async () => {
     setIsPortalLoading(true);
+
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      toast.loading('Abrindo portal...', { id: 'portal' });
+
+      // Timeout de 15 segundos
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout: A requisição demorou muito')), 15000)
+      );
+
+      const invokePromise = supabase.functions.invoke('customer-portal');
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
 
       if (error) throw error;
 
       if (data?.url) {
+        toast.success('Redirecionando...', { id: 'portal' });
         window.location.href = data.url;
-        toast.success('Redirecionando para o portal de gerenciamento...');
       } else {
-        toast.error('Erro: Nenhuma URL do portal retornada');
+        toast.error('Erro: Nenhuma URL do portal retornada', { id: 'portal' });
+        setIsPortalLoading(false);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao abrir portal de gerenciamento');
-    } finally {
+      console.error('Portal error:', error);
+      toast.error(error.message || 'Erro ao abrir portal. Tente novamente.', { id: 'portal' });
       setIsPortalLoading(false);
     }
   };

@@ -49,8 +49,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Allow access to subscription page even without active subscription
-  if (!isSubscribed && window.location.pathname !== '/subscription') {
+  // Allow access to subscription, reset-password and settings pages even without active subscription
+  const allowedPaths = ['/subscription', '/reset-password', '/settings'];
+  if (!isSubscribed && !allowedPaths.includes(window.location.pathname)) {
     return <Navigate to="/subscription" replace />;
   }
 
