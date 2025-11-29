@@ -1,135 +1,124 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Logo } from '@/components/Logo';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-const resetPasswordSchema = z.object({
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(100, 'Senha muito longa'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'As senhas não coincidem',
-  path: ['confirmPassword'],
-});
-
-type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
-
-const ResetPassword = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(false);
-  const [isCheckingToken, setIsCheckingToken] = useState(true);
+export default function ResetPassword() {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [debugStatus, setDebugStatus] = useState<string>("Initializing...");
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if we have a session or if we are in the process of recovering
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setDebugStatus(session ? "Session Active (Initial Check)" : "No Session (Initial Check)");
+
+      if (!session) {
+        // If no session, check if we have the hash fragments that Supabase sends
+        const hash = window.location.hash;
+        if (!hash || !hash.includes('type=recovery')) {
+          // If no recovery hash and no session, this is invalid access
+          setDebugStatus("Invalid Access: No session and no recovery hash");
+          toast.error("Link inválido ou expirado. Por favor, solicite uma nova redefinição de senha.");
+          // navigate("/login");
+        } else {
+          setDebugStatus("Recovery Hash Detected. Waiting for Supabase...");
+        }
+      }
+    };
     checkSession();
-  }, []);
 
-  const checkSession = async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth event:", event);
+      setDebugStatus(`Auth Event: ${event} | Session: ${session ? "Yes" : "No"}`);
 
-      if (error || !session) {
-        toast.error('Link inválido ou expirado');
-        setTimeout(() => navigate('/forgot-password'), 2000);
-        return;
+      if (event === "PASSWORD_RECOVERY") {
+        // User clicked the link and is now authenticated with a recovery token
       }
 
-      setIsValidToken(true);
-    } catch (error) {
-      console.error('Erro ao verificar sessão:', error);
-      toast.error('Erro ao verificar link de recuperação');
-      setTimeout(() => navigate('/forgot-password'), 2000);
-    } finally {
-      setIsCheckingToken(false);
+      // If we receive a USER_UPDATED event and we are loading, it means the password update worked
+      // even if the promise is still pending/timed out.
+      if (event === "USER_UPDATED") {
+        console.log("USER_UPDATED event received. Treating as success.");
+        setShowSuccess(true);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
     }
-  };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ResetPasswordForm>({
-    resolver: zodResolver(resetPasswordSchema),
-  });
+    if (password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
 
-  const onSubmit = async (data: ResetPasswordForm) => {
-    setIsLoading(true);
+    setLoading(true);
+    console.log("Starting password reset process...");
+
     try {
-      console.log('Attempting to update password...');
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Current session:", session);
 
-      const { data: updateData, error } = await supabase.auth.updateUser({
-        password: data.password,
-      });
+      if (!session) {
+        throw new Error("Sessão não encontrada. O link pode ter expirado.");
+      }
 
-      console.log('Update result:', { data: updateData, error });
+      console.log("Calling updateUser...");
+
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout')), 10000)
+      );
+
+      // Race the update against the timeout
+      const { error } = await Promise.race([
+        supabase.auth.updateUser({ password: password }),
+        timeoutPromise
+      ]) as any;
 
       if (error) {
-        console.error('Update user error:', error);
+        console.error("Supabase error:", error);
         throw error;
       }
 
-      toast.success('Senha redefinida com sucesso! Redirecionando...');
-
-      // Wait a moment for the toast to show
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Force page reload to login to avoid auth state issues
-      window.location.href = '/login';
+      console.log("Password updated successfully");
+      setShowSuccess(true);
     } catch (error: any) {
-      console.error('Erro ao redefinir senha:', error);
-
-      // Show more specific error message
-      const errorMessage = error.message || 'Erro ao redefinir senha. Tente novamente.';
-      toast.error(errorMessage);
-      setIsLoading(false);
+      console.error("Error resetting password:", error);
+      if (error.message === 'Timeout') {
+        toast.error('A operação demorou muito. Verifique sua conexão e tente novamente.');
+      } else {
+        toast.error(error.message || 'Ocorreu um erro ao redefinir a senha.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (isCheckingToken) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-4">
-        <Card className="w-full max-w-md bg-card border-white/10">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <LoadingSpinner size="lg" />
-              <p className="text-white/60">Verificando link de recuperação...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!isValidToken) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black p-4">
-        <Card className="w-full max-w-md bg-card border-white/10">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center mb-6">
-              <Logo className="h-16 w-auto" />
-            </div>
-            <CardTitle className="text-2xl font-bold text-white">Link Inválido</CardTitle>
-            <CardDescription className="text-white/60">
-              O link de recuperação expirou ou é inválido
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-white/60 text-center">
-              Redirecionando para solicitar novo link...
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
@@ -138,53 +127,104 @@ const ResetPassword = () => {
           <div className="flex justify-center mb-6">
             <Logo className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Nova Senha</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Redefinir senha</CardTitle>
           <CardDescription className="text-white/60">
-            Digite sua nova senha
+            Digite sua nova senha abaixo
           </CardDescription>
+          {/* Debug Info */}
+          <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-left font-mono text-yellow-400 break-all">
+            Debug Status: {debugStatus}
+          </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">Nova Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register('password')}
-                disabled={isLoading}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary"
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
-              )}
+              <Label htmlFor="password" className="text-white/80">Nova senha</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary pr-10"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white/80">Confirmar Senha</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                {...register('confirmPassword')}
-                disabled={isLoading}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary"
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-              )}
+              <Label htmlFor="confirmPassword" className="text-white/80">Confirmar nova senha</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary pr-10"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60"
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
+
             <Button
               type="submit"
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
-              disabled={isLoading}
+              disabled={loading}
             >
-              {isLoading ? <LoadingSpinner size="sm" /> : 'Redefinir Senha'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Redefinindo...
+                </>
+              ) : (
+                "Redefinir senha"
+              )}
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <DialogContent className="sm:max-w-md bg-card border-white/10">
+          <div className="flex flex-col items-center justify-center py-6">
+            <div className="bg-[#46CCC6]/20 rounded-full p-3 mb-6 animate-[pulse_2s_ease-in-out_1]">
+              <CheckCircle className="h-14 w-14 text-[#46CCC6]" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-center mb-2 text-white">
+              Senha alterada com sucesso!
+            </DialogTitle>
+            <DialogDescription className="text-center text-white/60 mb-6">
+              Sua senha foi redefinida com segurança. Você já pode acessar sua conta com a nova senha.
+            </DialogDescription>
+            <Button
+              onClick={() => navigate('/login')}
+              className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold h-12"
+            >
+              Ir para Login
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
-
-export default ResetPassword;
+}
