@@ -245,7 +245,7 @@ const Subscription = () => {
   const getButtonText = (planId: PlanType): string => {
     // Se não está inscrito e é o plano Basic, mostrar trial
     if (!isSubscribed && planId === 'basic') {
-      return 'Começar Trial Grátis';
+      return 'Teste 7 Dias Grátis';
     }
 
     if (!isSubscribed) return 'Assinar Agora';
@@ -441,13 +441,6 @@ const Subscription = () => {
                   </Badge>
                 </div>
               )}
-              {!isSubscribed && plan.id === 'basic' && (
-                <div className="absolute top-4 right-4 z-10">
-                  <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 text-xs font-bold">
-                    🎁 7 DIAS GRÁTIS
-                  </Badge>
-                </div>
-              )}
 
               <LiquidGlass
                 className={`h-full flex flex-col ${
@@ -531,13 +524,6 @@ const Subscription = () => {
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
                     SEU PLANO ATUAL
-                  </Badge>
-                </div>
-              )}
-              {!isSubscribed && plan.id === 'basic' && (
-                <div className="absolute top-3 right-3 z-10">
-                  <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 text-xs font-bold">
-                    🎁 7 DIAS GRÁTIS
                   </Badge>
                 </div>
               )}

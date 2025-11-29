@@ -18,7 +18,6 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [countdown, setCountdown] = useState(10);
-  const [debugStatus, setDebugStatus] = useState<string>("Initializing...");
   const navigate = useNavigate();
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -26,36 +25,24 @@ export default function ResetPassword() {
     // Check if we have a session or if we are in the process of recovering
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setDebugStatus(session ? "Session Active (Initial Check)" : "No Session (Initial Check)");
 
       if (!session) {
         // If no session, check if we have the hash fragments that Supabase sends
         const hash = window.location.hash;
         if (!hash || !hash.includes('type=recovery')) {
           // If no recovery hash and no session, this is invalid access
-          setDebugStatus("Invalid Access: No session and no recovery hash");
           toast.error("Link inválido ou expirado. Por favor, solicite uma nova redefinição de senha.");
-          // navigate("/login");
-        } else {
-          setDebugStatus("Recovery Hash Detected. Waiting for Supabase...");
+          navigate("/login");
         }
       }
     };
     checkSession();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth event:", event);
-      setDebugStatus(`Auth Event: ${event} | Session: ${session ? "Yes" : "No"}`);
-
-      if (event === "PASSWORD_RECOVERY") {
-        // User clicked the link and is now authenticated with a recovery token
-      }
-
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       // If we receive a USER_UPDATED event and we are loading, it means the password update worked
       // even if the promise is still pending/timed out.
       if (event === "USER_UPDATED") {
-        console.log("USER_UPDATED event received. Treating as success.");
         setShowSuccess(true);
         setLoading(false);
       }
@@ -74,7 +61,8 @@ export default function ResetPassword() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(countdownInterval);
-            navigate('/login');
+            // Usar window.location.href para forçar reload completo e limpar sessão
+            window.location.href = '/login';
             return 0;
           }
           return prev - 1;
@@ -85,7 +73,7 @@ export default function ResetPassword() {
         clearInterval(countdownInterval);
       };
     }
-  }, [showSuccess, navigate]);
+  }, [showSuccess]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,17 +89,13 @@ export default function ResetPassword() {
     }
 
     setLoading(true);
-    console.log("Starting password reset process...");
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("Current session:", session);
 
       if (!session) {
         throw new Error("Sessão não encontrada. O link pode ter expirado.");
       }
-
-      console.log("Calling updateUser...");
 
       // Create a timeout promise
       const timeoutPromise = new Promise((_, reject) =>
@@ -125,20 +109,18 @@ export default function ResetPassword() {
       ]) as any;
 
       if (error) {
-        console.error("Supabase error:", error);
         throw error;
       }
-
-      console.log("Password updated successfully");
 
       // IMPORTANTE: Fazer logout após redefinir senha por segurança
       // O usuário deve fazer login novamente com a nova senha
       await supabase.auth.signOut();
-      console.log("User signed out after password reset");
+
+      // Aguardar um pouco para garantir que o logout foi processado
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       setShowSuccess(true);
     } catch (error: any) {
-      console.error("Error resetting password:", error);
       if (error.message === 'Timeout') {
         toast.error('A operação demorou muito. Verifique sua conexão e tente novamente.');
       } else {
@@ -160,10 +142,6 @@ export default function ResetPassword() {
           <CardDescription className="text-white/60">
             Digite sua nova senha abaixo
           </CardDescription>
-          {/* Debug Info */}
-          <div className="mt-2 p-2 bg-gray-800 rounded text-xs text-left font-mono text-yellow-400 break-all">
-            Debug Status: {debugStatus}
-          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleResetPassword} className="space-y-4">
@@ -248,7 +226,7 @@ export default function ResetPassword() {
               <span className="text-[#46CCC6] font-semibold">Redirecionando em {countdown}s...</span>
             </DialogDescription>
             <Button
-              onClick={() => navigate('/login')}
+              onClick={() => window.location.href = '/login'}
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold h-12"
             >
               Ir para Login agora
