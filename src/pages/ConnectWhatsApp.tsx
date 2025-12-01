@@ -59,7 +59,7 @@ const ConnectWhatsApp = () => {
     try {
       const fullPhone = `55${cleanPhone}`;
 
-      const response = await fetch('https://n8n.vps.ordershub.com.br/webhook/whatsapp-auth', {
+      const response = await fetch('https://webhook.vps.ordershub.com.br/webhook/whatsapp-auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

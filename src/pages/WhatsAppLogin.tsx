@@ -60,7 +60,7 @@ export default function WhatsAppLogin() {
       const fullPhone = `55${cleanPhone}`;
 
       // AJUSTE AQUI: URL do seu N8N webhook
-      const response = await fetch("https://n8n.vps.ordershub.com.br/webhook/whatsapp-auth", {
+      const response = await fetch("https://webhook.vps.ordershub.com.br/webhook/whatsapp-auth", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
