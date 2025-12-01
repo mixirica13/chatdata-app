@@ -195,26 +195,56 @@ export const useAuth = create<AuthState>()(
       },
 
       logout: async () => {
-        // Track logout event before clearing session
-        if (posthog.__loaded) {
-          posthog.capture('logout');
-          posthog.reset(); // Reset user identification
+        try {
+          // Track logout event before clearing session
+          if (posthog.__loaded) {
+            posthog.capture('logout');
+            posthog.reset(); // Reset user identification
+          }
+
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+
+          // Clear all storage to ensure clean logout
+          localStorage.removeItem('auth-storage');
+          sessionStorage.clear();
+
+          // Reset ALL state to initial values
+          set({
+            user: null,
+            profile: null,
+            isAuthenticated: false,
+            isSubscribed: false,
+            subscriptionEnd: null,
+            subscriptionTier: null,
+            subscriptionStatus: null,
+            cancelAtPeriodEnd: false,
+            metaConnected: false,
+            whatsappConnected: false,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error('Logout error:', error);
+          // Force state reset even on error
+          localStorage.removeItem('auth-storage');
+          sessionStorage.clear();
+
+          set({
+            user: null,
+            profile: null,
+            isAuthenticated: false,
+            isSubscribed: false,
+            subscriptionEnd: null,
+            subscriptionTier: null,
+            subscriptionStatus: null,
+            cancelAtPeriodEnd: false,
+            metaConnected: false,
+            whatsappConnected: false,
+            isLoading: false,
+          });
+
+          throw error;
         }
-
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-
-        // Clear all storage to ensure clean logout
-        localStorage.removeItem('auth-storage');
-
-        set({
-          user: null,
-          profile: null,
-          isAuthenticated: false,
-          isSubscribed: false,
-          subscriptionEnd: null,
-          cancelAtPeriodEnd: false,
-        });
       },
 
       checkSubscription: async () => {
