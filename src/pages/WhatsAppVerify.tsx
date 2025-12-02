@@ -30,7 +30,7 @@ export default function WhatsAppVerify() {
 
   const verifyToken = async (token: string) => {
     try {
-      // AJUSTE AQUI: URL do seu N8N webhook de validação
+      // Validar token com o webhook N8N
       const response = await fetch("https://webhook.vps.ordershub.com.br/webhook/whatsapp-verify", {
         method: "POST",
         headers: {
@@ -40,66 +40,42 @@ export default function WhatsAppVerify() {
       });
 
       const data = await response.json();
+      console.log("Resposta do webhook:", data);
 
       if (data.success) {
-        // Token válido - fazer login no Supabase
-        const { userId, phone } = data;
+        // Token válido - conectar WhatsApp ao usuário atual
+        const { phone } = data;
 
-        // Criar sessão usando o phone como email temporário
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-          email: `${phone}@whatsapp.local`,
-          password: userId, // Usar userId como senha temporária
-        });
+        // Verificar se o usuário está logado
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (error) {
-          // Se falhar, tentar criar o usuário
-          if (data.action === "register") {
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email: `${phone}@whatsapp.local`,
-              password: userId,
-              options: {
-                data: {
-                  phone: phone,
-                  auth_method: "whatsapp",
-                },
-              },
-            });
-
-            if (signUpError) {
-              throw signUpError;
-            }
-
-            // Atualizar subscriber com número do WhatsApp
-            if (signUpData.user) {
-              await supabase
-                .from('subscribers')
-                .update({
-                  whatsapp_connected: true,
-                  whatsapp_phone: phone,
-                })
-                .eq('user_id', signUpData.user.id);
-            }
-          } else {
-            throw error;
-          }
-        } else {
-          // Login bem-sucedido - atualizar subscriber com número do WhatsApp
-          if (authData.user) {
-            await supabase
-              .from('subscribers')
-              .update({
-                whatsapp_connected: true,
-                whatsapp_phone: phone,
-              })
-              .eq('user_id', authData.user.id);
-          }
+        if (!user) {
+          setStatus("error");
+          setErrorMessage("Você precisa estar logado para conectar o WhatsApp");
+          return;
         }
+
+        // Atualizar subscriber com número do WhatsApp verificado
+        const { error: updateError } = await supabase
+          .from('subscribers')
+          .update({
+            whatsapp_connected: true,
+            whatsapp_phone: phone,
+          })
+          .eq('user_id', user.id);
+
+        if (updateError) {
+          console.error("Erro ao atualizar subscriber:", updateError);
+          throw new Error("Erro ao conectar WhatsApp");
+        }
+
+        console.log("WhatsApp conectado com sucesso:", phone);
 
         setStatus("success");
 
         toast({
-          title: "Bem-vindo!",
-          description: "Login realizado com sucesso.",
+          title: "WhatsApp conectado!",
+          description: "Seu número foi verificado com sucesso.",
         });
 
         // Redirecionar após 2 segundos
@@ -122,11 +98,11 @@ export default function WhatsAppVerify() {
     } catch (error) {
       console.error("Erro ao verificar token:", error);
       setStatus("error");
-      setErrorMessage("Erro ao processar autenticação");
+      setErrorMessage("Erro ao processar verificação");
 
       toast({
         title: "Erro",
-        description: "Não foi possível completar a autenticação.",
+        description: "Não foi possível conectar o WhatsApp.",
         variant: "destructive",
       });
     }
@@ -178,7 +154,7 @@ export default function WhatsAppVerify() {
                 Este link de acesso expirou. Solicite um novo link para continuar.
               </p>
             </div>
-            <Button onClick={() => navigate("/whatsapp-login")} size="lg">
+            <Button onClick={() => navigate("/connect/whatsapp")} size="lg">
               Solicitar novo link
             </Button>
           </div>
@@ -203,11 +179,11 @@ export default function WhatsAppVerify() {
                 Ir para dashboard
               </Button>
               <Button
-                onClick={() => navigate("/whatsapp-login")}
+                onClick={() => navigate("/connect/whatsapp")}
                 variant="outline"
                 size="lg"
               >
-                Novo login
+                Novo link
               </Button>
             </div>
           </div>
@@ -225,7 +201,7 @@ export default function WhatsAppVerify() {
               </h3>
               <p className="text-sm text-muted-foreground">{errorMessage}</p>
             </div>
-            <Button onClick={() => navigate("/whatsapp-login")} size="lg">
+            <Button onClick={() => navigate("/connect/whatsapp")} size="lg">
               Tentar novamente
             </Button>
           </div>
