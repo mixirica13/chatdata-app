@@ -171,6 +171,11 @@ declare global {
   namespace Express {
     interface Request {
       user?: UserToken;
+      metaToken?: {
+        access_token: string;
+        user_id: string;
+        ad_account_ids: string[];
+      };
     }
   }
 }
