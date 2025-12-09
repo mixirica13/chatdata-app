@@ -11,8 +11,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import EmailConfirmed from "./pages/EmailConfirmed";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import MetaAdsDashboard from "./pages/MetaAdsDashboard";
@@ -23,7 +21,6 @@ import History from "./pages/History";
 import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 import WhatsAppVerify from "./pages/WhatsAppVerify";
-import WhatsAppLogin from "./pages/WhatsAppLogin";
 import LandingPage from "./pages/LandingPage";
 import LandingPageV2 from "./pages/LandingPageV2";
 import LandingPageV3 from "./pages/LandingPageV3";
@@ -83,7 +80,6 @@ const App = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/whatsapp-login" element={<WhatsAppLogin />} />
             <Route path="/auth/verify" element={<WhatsAppVerify />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/email-confirmed" element={<EmailConfirmed />} />
