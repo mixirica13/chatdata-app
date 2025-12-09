@@ -124,6 +124,32 @@ serve(async (req) => {
       console.log('Subscriber meta_connected flag updated successfully')
     }
 
+    // Generate MCP token automatically for n8n AI Agent integration
+    console.log('Generating MCP token...')
+    const tokenBytes = new Uint8Array(32)
+    crypto.getRandomValues(tokenBytes)
+    const tokenRaw = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('')
+    const mcpToken = `mcp_${tokenRaw}`
+
+    // Upsert MCP token (same expiration as Meta token)
+    const { error: mcpTokenError } = await supabaseClient
+      .from('chatdata_mcp_tokens')
+      .upsert({
+        user_id: user.id,
+        mcp_token: mcpToken,
+        expires_at: expiresAt.toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
+
+    if (mcpTokenError) {
+      console.error('Error storing MCP token:', mcpTokenError)
+      // Don't throw - Meta credentials are already saved
+    } else {
+      console.log('MCP token generated and stored successfully')
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
