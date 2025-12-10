@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFacebookLogin } from '@/hooks/useFacebookLogin';
@@ -13,6 +13,8 @@ import { useTracking } from '@/hooks/useTracking';
 
 const ConnectMeta = () => {
   const [isSaving, setIsSaving] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const hasProcessedToken = useRef(false);
   const { user, checkSubscription } = useAuth();
   const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
   const navigate = useNavigate();
@@ -28,9 +30,15 @@ const ConnectMeta = () => {
   // Automatically save token when user connects with Facebook
   useEffect(() => {
     const saveConnection = async () => {
-      if (!authResponse || !user || isSaving) return;
+      // Skip if no auth response, no user, already saving, or already processed this token
+      if (!authResponse || !user) return;
+      if (hasProcessedToken.current) return;
 
+      // Mark as processing to prevent duplicate calls
+      hasProcessedToken.current = true;
       setIsSaving(true);
+      setConnectionError(null);
+
       try {
         console.log('Exchanging Facebook token for long-lived token...');
 
@@ -45,13 +53,16 @@ const ConnectMeta = () => {
 
         if (exchangeError) {
           console.error('Token exchange error:', exchangeError);
+          hasProcessedToken.current = false; // Allow retry
 
           // Track connection failure
           trackEvent('meta_connection_failed', {
             error_type: exchangeError.message || 'token_exchange_error',
           });
 
+          setConnectionError(exchangeError.message || 'Erro ao trocar token');
           toast.error('Erro ao salvar conexão. Tente novamente.');
+          setIsSaving(false);
           return;
         }
 
@@ -75,23 +86,28 @@ const ConnectMeta = () => {
         }, 1000);
       } catch (error) {
         console.error('Error saving connection:', error);
+        hasProcessedToken.current = false; // Allow retry
 
         // Track connection failure
         trackEvent('meta_connection_failed', {
           error_type: 'unexpected_error',
         });
 
+        setConnectionError('Erro inesperado ao salvar conexão');
         toast.error('Erro ao salvar conexão. Tente novamente.');
-      } finally {
         setIsSaving(false);
       }
     };
 
     saveConnection();
-  }, [authResponse, user, trackEvent]);
+  }, [authResponse, user, trackEvent, checkSubscription, navigate]);
 
   const handleConnect = async () => {
     try {
+      // Reset state for new connection attempt
+      hasProcessedToken.current = false;
+      setConnectionError(null);
+
       // Track connection start
       trackEvent('meta_connection_started');
 
@@ -142,8 +158,17 @@ const ConnectMeta = () => {
               </Alert>
             )}
 
-            {!isConnected ? (
+            {!isConnected || connectionError ? (
               <>
+                {connectionError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {connectionError}. Clique em "Conectar com Meta" para tentar novamente.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="bg-muted p-4 rounded-lg space-y-3">
                   <p className="font-medium">Permissões necessárias:</p>
                   <ul className="space-y-2 text-sm">
@@ -178,16 +203,16 @@ const ConnectMeta = () => {
 
                 <Button
                   onClick={handleConnect}
-                  disabled={isLoading || !isInitialized}
+                  disabled={isLoading || !isInitialized || isSaving}
                   className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
                   size="lg"
                 >
-                  {isLoading ? (
+                  {isLoading || isSaving ? (
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
                       <Facebook className="w-5 h-5 mr-2" />
-                      Conectar com Meta
+                      {connectionError ? 'Tentar Novamente' : 'Conectar com Meta'}
                     </>
                   )}
                 </Button>
