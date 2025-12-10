@@ -14,6 +14,7 @@ interface AuthState {
   subscriptionTier: string | null;
   subscriptionStatus: string | null;
   cancelAtPeriodEnd: boolean;
+  hadSubscription: boolean; // Se já teve assinatura/trial antes
   metaConnected: boolean;
   whatsappConnected: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -294,6 +295,17 @@ export const useAuth = create<AuthState>()(
             if (credentialsError) {
               console.error('Error deleting meta credentials:', credentialsError);
               throw credentialsError;
+            }
+
+            // Delete MCP token from chatdata_mcp_tokens table
+            const { error: mcpTokenError } = await supabase
+              .from('chatdata_mcp_tokens')
+              .delete()
+              .eq('user_id', state.user.id);
+
+            if (mcpTokenError) {
+              console.error('Error deleting MCP token:', mcpTokenError);
+              // Don't throw - credentials already deleted
             }
 
             // Update meta_connected flag in subscribers table
