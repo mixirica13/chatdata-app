@@ -18,6 +18,62 @@ interface FacebookTokenResponse {
   expires_in?: number
 }
 
+interface TokenPayload {
+  access_token: string
+  user_id: string
+  ad_account_ids: string[]
+  expires_at: string
+}
+
+/**
+ * Encrypt token payload using AES-256-GCM
+ */
+async function encryptToken(payload: TokenPayload, encryptionKey: string): Promise<string> {
+  const ALGORITHM = 'AES-GCM'
+  const IV_LENGTH = 12
+  const AUTH_TAG_LENGTH = 128
+
+  // Import key from hex string
+  const keyBytes = new Uint8Array(32)
+  for (let i = 0; i < 32; i++) {
+    keyBytes[i] = parseInt(encryptionKey.substr(i * 2, 2), 16)
+  }
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    keyBytes,
+    { name: ALGORITHM, length: 256 },
+    false,
+    ['encrypt']
+  )
+
+  // Generate random IV
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH))
+
+  // Encrypt
+  const encoder = new TextEncoder()
+  const plaintextBytes = encoder.encode(JSON.stringify(payload))
+
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: ALGORITHM, iv, tagLength: AUTH_TAG_LENGTH },
+    key,
+    plaintextBytes
+  )
+
+  // Combine IV + ciphertext
+  const combined = new Uint8Array(IV_LENGTH + ciphertext.byteLength)
+  combined.set(iv, 0)
+  combined.set(new Uint8Array(ciphertext), IV_LENGTH)
+
+  // Encode as base64url
+  const base64 = btoa(String.fromCharCode(...combined))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '')
+
+  return `mcp_${base64}`
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -56,15 +112,19 @@ serve(async (req) => {
     // Get Meta App credentials from environment
     const appId = Deno.env.get('META_APP_ID')
     const appSecret = Deno.env.get('META_APP_SECRET')
+    const encryptionKey = Deno.env.get('MCP_ENCRYPTION_KEY')
 
     if (!appId || !appSecret) {
       throw new Error('Meta App credentials not configured')
     }
 
+    if (!encryptionKey || encryptionKey.length !== 64) {
+      throw new Error('MCP_ENCRYPTION_KEY not configured or invalid (must be 64 hex chars)')
+    }
+
     console.log('Exchanging short-lived token for long-lived token...')
 
     // Exchange short-lived token for long-lived token (60 days)
-    // https://developers.facebook.com/docs/facebook-login/guides/access-tokens/get-long-lived
     const exchangeUrl = new URL('https://graph.facebook.com/v24.0/oauth/access_token')
     exchangeUrl.searchParams.set('grant_type', 'fb_exchange_token')
     exchangeUrl.searchParams.set('client_id', appId)
@@ -88,7 +148,7 @@ serve(async (req) => {
     console.log(`Token expires at: ${expiresAt.toISOString()}`)
 
     // Store the long-lived token in meta_credentials table
-    const { data: credentialData, error: credentialError } = await supabaseClient
+    const { error: credentialError } = await supabaseClient
       .from('meta_credentials')
       .upsert({
         user_id: user.id,
@@ -101,8 +161,6 @@ serve(async (req) => {
       }, {
         onConflict: 'user_id'
       })
-      .select()
-      .single()
 
     if (credentialError) {
       console.error('Error storing credentials:', credentialError)
@@ -119,19 +177,23 @@ serve(async (req) => {
 
     if (subscriberError) {
       console.error('Error updating subscriber meta_connected flag:', subscriberError)
-      // Don't throw error, just log it - credentials are already saved
     } else {
       console.log('Subscriber meta_connected flag updated successfully')
     }
 
-    // Generate MCP token automatically for n8n AI Agent integration
-    console.log('Generating MCP token...')
-    const tokenBytes = new Uint8Array(32)
-    crypto.getRandomValues(tokenBytes)
-    const tokenRaw = Array.from(tokenBytes).map(b => b.toString(16).padStart(2, '0')).join('')
-    const mcpToken = `mcp_${tokenRaw}`
+    // Generate encrypted MCP token
+    console.log('Generating encrypted MCP token...')
 
-    // Upsert MCP token (same expiration as Meta token)
+    const tokenPayload: TokenPayload = {
+      access_token: exchangeData.access_token,
+      user_id: user.id,
+      ad_account_ids: body.ad_account_ids || [],
+      expires_at: expiresAt.toISOString()
+    }
+
+    const mcpToken = await encryptToken(tokenPayload, encryptionKey)
+
+    // Store MCP token in database (for n8n to retrieve by phone)
     const { error: mcpTokenError } = await supabaseClient
       .from('chatdata_mcp_tokens')
       .upsert({
@@ -145,9 +207,8 @@ serve(async (req) => {
 
     if (mcpTokenError) {
       console.error('Error storing MCP token:', mcpTokenError)
-      // Don't throw - Meta credentials are already saved
     } else {
-      console.log('MCP token generated and stored successfully')
+      console.log('Encrypted MCP token generated and stored successfully')
     }
 
     return new Response(
