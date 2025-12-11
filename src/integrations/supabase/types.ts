@@ -46,6 +46,7 @@ export type Database = {
           email: string
           id: string
           name: string | null
+          phone: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscribed: boolean
@@ -62,6 +63,7 @@ export type Database = {
           email: string
           id?: string
           name?: string | null
+          phone?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscribed?: boolean
@@ -78,6 +80,7 @@ export type Database = {
           email?: string
           id?: string
           name?: string | null
+          phone?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscribed?: boolean
