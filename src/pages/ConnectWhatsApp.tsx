@@ -102,6 +102,8 @@ const ConnectWhatsApp = () => {
 
   const startVerificationPolling = () => {
     setIsVerifying(true);
+    const cleanPhone = phone.replace(/\D/g, '');
+    const fullPhone = `55${cleanPhone}`;
 
     // Verificar a cada 3 segundos se o WhatsApp foi conectado
     const interval = setInterval(async () => {
@@ -109,7 +111,7 @@ const ConnectWhatsApp = () => {
 
       const { data: profile } = await supabase
         .from('subscribers')
-        .select('whatsapp_connected, whatsapp_phone')
+        .select('whatsapp_connected')
         .eq('user_id', user.id)
         .single();
 
@@ -117,9 +119,15 @@ const ConnectWhatsApp = () => {
         clearInterval(interval);
         setIsVerifying(false);
 
+        // Salvar o número que foi digitado para verificação
+        await supabase
+          .from('subscribers')
+          .update({ whatsapp_phone: fullPhone })
+          .eq('user_id', user.id);
+
         // Track successful connection
         trackEvent('whatsapp_connection_completed', {
-          phone_number_hash: profile.whatsapp_phone ? `***${profile.whatsapp_phone.slice(-4)}` : undefined,
+          phone_number_hash: `***${cleanPhone.slice(-4)}`,
         });
 
         toast.success('WhatsApp autenticado com sucesso!');
