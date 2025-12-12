@@ -30,7 +30,7 @@ const steps = [
 
 export const HowItWorksV3 = () => {
   return (
-    <section className="relative py-24 bg-black overflow-hidden">
+    <section className="relative py-16 bg-black overflow-hidden">
       {/* Background effect */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#46CCC6]/50 to-transparent" />

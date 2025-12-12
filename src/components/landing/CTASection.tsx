@@ -7,7 +7,7 @@ export const CTASection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-24 bg-black overflow-hidden">
+    <section className="relative py-16 bg-black overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#46CCC6]/20 rounded-full blur-3xl" />

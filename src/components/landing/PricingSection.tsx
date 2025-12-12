@@ -61,7 +61,7 @@ export const PricingSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-24 bg-black">
+    <section className="relative py-16 bg-black">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <div className="inline-block px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6">
