@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +16,12 @@
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
+    <!-- DNS Prefetch for third-party resources -->
+    <link rel="dns-prefetch" href="https://connect.facebook.net" />
+
+    <!-- Preload critical images -->
+    <link rel="preload" as="image" href="/logo.svg" type="image/svg+xml" />
+
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -24,40 +30,70 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#46CCC6" />
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Optimized loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    </noscript>
+
+    <!-- Critical CSS - Inline for faster first paint -->
+    <style>
+      /* Critical CSS for above-the-fold content */
+      *,*::before,*::after{box-sizing:border-box}
+      html{-webkit-text-size-adjust:100%}
+      body{margin:0;font-family:'Inter',system-ui,-apple-system,sans-serif;background:#000;color:#fff}
+      #root{min-height:100vh}
+      .animate-spin{animation:spin 1s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
     <div id="fb-root"></div>
 
-    <!-- Facebook SDK - Official Implementation -->
+    <!-- Main app script -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Facebook SDK - Deferred loading (loads after page is interactive) -->
     <script>
-      window.fbAsyncInit = function() {
-        FB.init({
-          appId      : '1390576902860871',
-          cookie     : true,
-          xfbml      : true,
-          version    : 'v24.0'
-        });
+      // Defer Facebook SDK initialization until after page load
+      window.loadFacebookSDK = function() {
+        if (window.FB) return; // Already loaded
 
-        FB.AppEvents.logPageView();
+        window.fbAsyncInit = function() {
+          FB.init({
+            appId: '1390576902860871',
+            cookie: true,
+            xfbml: true,
+            version: 'v24.0'
+          });
+          FB.AppEvents.logPageView();
+        };
 
-        console.log('Facebook SDK initialized with version v24.0');
+        (function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s);
+          js.id = id;
+          js.async = true;
+          js.defer = true;
+          js.src = "https://connect.facebook.net/pt_BR/sdk.js";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
       };
 
-      (function(d, s, id){
-         var js, fjs = d.getElementsByTagName(s)[0];
-         if (d.getElementById(id)) {return;}
-         js = d.createElement(s); js.id = id;
-         js.src = "https://connect.facebook.net/pt_BR/sdk.js";
-         fjs.parentNode.insertBefore(js, fjs);
-       }(document, 'script', 'facebook-jssdk'));
+      // Load Facebook SDK after page becomes interactive
+      if (document.readyState === 'complete') {
+        setTimeout(window.loadFacebookSDK, 100);
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(window.loadFacebookSDK, 100);
+        });
+      }
     </script>
-
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

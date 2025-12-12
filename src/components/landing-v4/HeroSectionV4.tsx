@@ -78,7 +78,7 @@ export const HeroSectionV4 = () => {
                   <div className="absolute top-0 left-0 right-0 p-4 bg-[#075E54] rounded-t-3xl">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden">
-                        <img src="/logo-hd.png" alt="ChatData" className="w-full h-full object-cover" />
+                        <img src="/logo-wpp-print.png" alt="ChatData" className="w-full h-full object-cover" width="40" height="40" loading="eager" decoding="async" />
                       </div>
                       <div>
                         <div className="text-white font-semibold text-sm">ChatData IA</div>

@@ -1,33 +1,44 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import ConfirmEmail from "./pages/ConfirmEmail";
-import EmailConfirmed from "./pages/EmailConfirmed";
-import Onboarding from "./pages/Onboarding";
-import Dashboard from "./pages/Dashboard";
-import MetaAdsDashboard from "./pages/MetaAdsDashboard";
-import ConnectMeta from "./pages/ConnectMeta";
-import ConnectWhatsApp from "./pages/ConnectWhatsApp";
-import Settings from "./pages/Settings";
-import History from "./pages/History";
-import Subscription from "./pages/Subscription";
-import NotFound from "./pages/NotFound";
-import WhatsAppVerify from "./pages/WhatsAppVerify";
-import LandingPage from "./pages/LandingPage";
-import LandingPageV2 from "./pages/LandingPageV2";
-import LandingPageV3 from "./pages/LandingPageV3";
+
+// Eagerly load landing page (first paint)
 import LandingPageV4 from "./pages/LandingPageV4";
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import DataDeletion from "./pages/DataDeletion";
+
+// Lazy load all other pages for code splitting
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ConfirmEmail = lazy(() => import("./pages/ConfirmEmail"));
+const EmailConfirmed = lazy(() => import("./pages/EmailConfirmed"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MetaAdsDashboard = lazy(() => import("./pages/MetaAdsDashboard"));
+const ConnectMeta = lazy(() => import("./pages/ConnectMeta"));
+const ConnectWhatsApp = lazy(() => import("./pages/ConnectWhatsApp"));
+const Settings = lazy(() => import("./pages/Settings"));
+const History = lazy(() => import("./pages/History"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const WhatsAppVerify = lazy(() => import("./pages/WhatsAppVerify"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const LandingPageV2 = lazy(() => import("./pages/LandingPageV2"));
+const LandingPageV3 = lazy(() => import("./pages/LandingPageV3"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const DataDeletion = lazy(() => import("./pages/DataDeletion"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-black">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -68,31 +79,36 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPageV4 />} />
-            <Route path="/lp-v1" element={<LandingPage />} />
-            <Route path="/lp-v2" element={<LandingPageV2 />} />
-            <Route path="/lp-v3" element={<LandingPageV3 />} />
-            <Route path="/termos" element={<TermsOfService />} />
-            <Route path="/privacidade" element={<PrivacyPolicy />} />
-            <Route path="/exclusao-dados" element={<DataDeletion />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/auth/verify" element={<WhatsAppVerify />} />
-            <Route path="/confirm-email" element={<ConfirmEmail />} />
-            <Route path="/email-confirmed" element={<EmailConfirmed />} />
-            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/meta-ads" element={<ProtectedRoute><MetaAdsDashboard /></ProtectedRoute>} />
-            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-            <Route path="/connect/meta" element={<ProtectedRoute><ConnectMeta /></ProtectedRoute>} />
-            <Route path="/connect/whatsapp" element={<ProtectedRoute><ConnectWhatsApp /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Landing page loaded eagerly for fast first paint */}
+              <Route path="/" element={<LandingPageV4 />} />
+
+              {/* Lazy loaded pages */}
+              <Route path="/lp-v1" element={<LandingPage />} />
+              <Route path="/lp-v2" element={<LandingPageV2 />} />
+              <Route path="/lp-v3" element={<LandingPageV3 />} />
+              <Route path="/termos" element={<TermsOfService />} />
+              <Route path="/privacidade" element={<PrivacyPolicy />} />
+              <Route path="/exclusao-dados" element={<DataDeletion />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/verify" element={<WhatsAppVerify />} />
+              <Route path="/confirm-email" element={<ConfirmEmail />} />
+              <Route path="/email-confirmed" element={<EmailConfirmed />} />
+              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/meta-ads" element={<ProtectedRoute><MetaAdsDashboard /></ProtectedRoute>} />
+              <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+              <Route path="/connect/meta" element={<ProtectedRoute><ConnectMeta /></ProtectedRoute>} />
+              <Route path="/connect/whatsapp" element={<ProtectedRoute><ConnectWhatsApp /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

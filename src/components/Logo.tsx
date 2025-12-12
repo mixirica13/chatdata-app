@@ -4,6 +4,10 @@ export const Logo = ({ className = "w-32 h-32" }: { className?: string }) => {
       src="/logo.svg"
       alt="ChatData Logo"
       className={className}
+      width="128"
+      height="128"
+      loading="eager"
+      decoding="async"
     />
   );
 };
