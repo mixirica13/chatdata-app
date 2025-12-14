@@ -54,7 +54,12 @@ export const Header = () => {
             <Settings className="mr-2 h-4 w-4" />
             <span>Configurações</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleLogout}>
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              handleLogout();
+            }}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             <span>Sair</span>
           </DropdownMenuItem>
