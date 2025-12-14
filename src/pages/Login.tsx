@@ -12,6 +12,8 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
 import { useTracking } from '@/hooks/useTracking';
 import { translateAuthError } from '@/utils/authErrors';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -25,6 +27,7 @@ const Login = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [hasLoggedFirstLogin, setHasLoggedFirstLogin] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
   const { login, loginWithGoogle, isAuthenticated, initialize, user } = useAuth();
   const navigate = useNavigate();
   const { trackEvent, trackPageView, identifyUser } = useTracking();
@@ -100,6 +103,35 @@ const Login = () => {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    const email = getValues('email');
+
+    if (!email) {
+      toast.error('Por favor, preencha o email antes de reenviar.');
+      return;
+    }
+
+    setIsResendingEmail(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/email-confirmed`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success('Email de confirmação reenviado! Verifique sua caixa de entrada.');
+      navigate(`/confirm-email?email=${encodeURIComponent(email)}`);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao reenviar email. Tente novamente.');
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
       <Card className="w-full max-w-md bg-card border-white/10">
@@ -154,10 +186,11 @@ const Login = () => {
                   <p className="text-sm text-destructive">{formError}</p>
                   <button
                     type="button"
-                    onClick={() => navigate(`/confirm-email?email=${encodeURIComponent(getValues('email'))}`)}
-                    className="text-sm text-primary hover:underline"
+                    onClick={handleResendConfirmation}
+                    disabled={isResendingEmail}
+                    className="text-sm text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Reenviar email de confirmação
+                    {isResendingEmail ? 'Reenviando...' : 'Reenviar email de confirmação'}
                   </button>
                 </div>
               )}
