@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,17 @@ const ConfirmEmail = () => {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
   const [isResending, setIsResending] = useState(false);
+  const [showLoginButton, setShowLoginButton] = useState(false);
   const navigate = useNavigate();
+
+  // Mostrar botão de login após 30 segundos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowLoginButton(true);
+    }, 30000); // 30 segundos
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleResendEmail = async () => {
     if (!email) {
@@ -100,12 +110,14 @@ const ConfirmEmail = () => {
               )}
             </Button>
 
-            <Button
-              onClick={() => navigate('/login')}
-              className="w-full"
-            >
-              Ir para Login
-            </Button>
+            {showLoginButton && (
+              <Button
+                onClick={() => navigate('/login')}
+                className="w-full"
+              >
+                Ir para Login
+              </Button>
+            )}
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
