@@ -10,8 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
-import { toast } from 'sonner';
 import { useTracking } from '@/hooks/useTracking';
+import { translateAuthError } from '@/utils/authErrors';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -24,6 +24,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [hasLoggedFirstLogin, setHasLoggedFirstLogin] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const { login, loginWithGoogle, isAuthenticated, initialize, user } = useAuth();
   const navigate = useNavigate();
   const { trackEvent, trackPageView, identifyUser } = useTracking();
@@ -45,6 +46,7 @@ const Login = () => {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -52,6 +54,7 @@ const Login = () => {
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
+    setFormError(null);
     try {
       await login(data.email, data.password);
 
@@ -72,22 +75,14 @@ const Login = () => {
           identifyUser(user.id);
         }
       }
-
-      toast.success('Login realizado com sucesso!');
     } catch (error: any) {
-      const errorMessage = error.message || 'Erro ao fazer login. Verifique suas credenciais.';
+      const translatedError = translateAuthError(error);
 
-      // If email not confirmed, show custom message with link
-      if (errorMessage.includes('confirme seu email')) {
-        toast.error(errorMessage, {
-          duration: 6000,
-          action: {
-            label: 'Reenviar',
-            onClick: () => navigate(`/confirm-email?email=${encodeURIComponent(data.email)}`),
-          },
-        });
+      // If email not confirmed, add link to resend
+      if (translatedError.includes('confirme seu email')) {
+        setFormError(translatedError);
       } else {
-        toast.error(errorMessage);
+        setFormError(translatedError);
       }
     } finally {
       setIsLoading(false);
@@ -96,10 +91,11 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
+    setFormError(null);
     try {
       await loginWithGoogle();
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer login com Google.');
+      setFormError(translateAuthError(error));
       setIsGoogleLoading(false);
     }
   };
@@ -150,7 +146,23 @@ const Login = () => {
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
+              {formError && !formError.includes('confirme seu email') && (
+                <p className="text-sm text-destructive">{formError}</p>
+              )}
+              {formError && formError.includes('confirme seu email') && (
+                <div className="space-y-1">
+                  <p className="text-sm text-destructive">{formError}</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/confirm-email?email=${encodeURIComponent(getValues('email'))}`)}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Reenviar email de confirmação
+                  </button>
+                </div>
+              )}
             </div>
+
             <Button type="submit" className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold" disabled={isLoading || isGoogleLoading}>
               {isLoading ? <LoadingSpinner size="sm" /> : 'Entrar'}
             </Button>

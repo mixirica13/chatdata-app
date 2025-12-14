@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,6 +8,7 @@ import { Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
+import { translateAuthError } from '@/utils/authErrors';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -18,6 +18,7 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const [formError, setFormError] = useState<string | null>(null);
   const navigate = useNavigate();
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -31,8 +32,8 @@ export default function ResetPassword() {
         const hash = window.location.hash;
         if (!hash || !hash.includes('type=recovery')) {
           // If no recovery hash and no session, this is invalid access
-          toast.error("Link inválido ou expirado. Por favor, solicite uma nova redefinição de senha.");
-          navigate("/login");
+          setFormError("Link inválido ou expirado. Por favor, solicite uma nova redefinição de senha.");
+          setTimeout(() => navigate("/login"), 3000);
         }
       }
     };
@@ -78,13 +79,15 @@ export default function ResetPassword() {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setFormError(null);
+
     if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
+      setFormError('As senhas não coincidem');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      setFormError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
 
@@ -122,9 +125,9 @@ export default function ResetPassword() {
       setShowSuccess(true);
     } catch (error: any) {
       if (error.message === 'Timeout') {
-        toast.error('A operação demorou muito. Verifique sua conexão e tente novamente.');
+        setFormError('A operação demorou muito. Verifique sua conexão e tente novamente.');
       } else {
-        toast.error(error.message || 'Ocorreu um erro ao redefinir a senha.');
+        setFormError(translateAuthError(error));
       }
     } finally {
       setLoading(false);
@@ -191,6 +194,9 @@ export default function ResetPassword() {
                   {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {formError && (
+                <p className="text-sm text-destructive">{formError}</p>
+              )}
             </div>
 
             <Button

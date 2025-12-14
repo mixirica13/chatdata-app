@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Zap } from 'lucide-react';
 import { useTracking } from '@/hooks/useTracking';
+import { supabase } from '@/integrations/supabase/client';
 
 const EmailConfirmed = () => {
   const navigate = useNavigate();
@@ -11,6 +12,24 @@ const EmailConfirmed = () => {
   const { trackEvent, trackPageView } = useTracking();
 
   useEffect(() => {
+    // Process any auth tokens in URL to ensure email confirmation is complete
+    // Then sign out to keep the expected flow (user must login manually)
+    const processConfirmation = async () => {
+      try {
+        // This processes any tokens in the URL hash automatically
+        const { data: { session } } = await supabase.auth.getSession();
+
+        // If a session was created, sign out to maintain expected flow
+        if (session) {
+          await supabase.auth.signOut();
+        }
+      } catch (error) {
+        console.error('Error processing email confirmation:', error);
+      }
+    };
+
+    processConfirmation();
+
     // Track email confirmation
     trackPageView('email_confirmed_page');
     trackEvent('email_confirmed');

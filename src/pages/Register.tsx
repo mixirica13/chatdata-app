@@ -10,11 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
-import { toast } from 'sonner';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import '@/styles/phone-input.css';
 import { useTracking } from '@/hooks/useTracking';
+import { translateAuthError } from '@/utils/authErrors';
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Nome muito longo'),
@@ -40,6 +40,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const { register: registerUser, loginWithGoogle, isAuthenticated, initialize } = useAuth();
   const navigate = useNavigate();
   const { trackEvent, trackPageView } = useTracking();
@@ -73,6 +74,7 @@ const Register = () => {
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
+    setFormError(null);
     try {
       await registerUser(data.name, data.email, data.password, data.whatsapp);
     } catch (error: any) {
@@ -84,10 +86,9 @@ const Register = () => {
         });
         trackEvent('email_confirmation_sent');
 
-        toast.success('Conta criada com sucesso!');
         navigate(`/confirm-email?email=${encodeURIComponent(data.email)}`);
       } else {
-        toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
+        setFormError(translateAuthError(error));
       }
     } finally {
       setIsLoading(false);
@@ -96,11 +97,12 @@ const Register = () => {
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
+    setFormError(null);
     try {
       trackEvent('registration_google_started');
       await loginWithGoogle();
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer cadastro com Google.');
+      setFormError(translateAuthError(error));
       setIsGoogleLoading(false);
     }
   };
@@ -196,7 +198,11 @@ const Register = () => {
               {errors.confirmPassword && (
                 <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
               )}
+              {formError && (
+                <p className="text-sm text-destructive">{formError}</p>
+              )}
             </div>
+
             <Button type="submit" className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold" disabled={isLoading || isGoogleLoading}>
               {isLoading ? <LoadingSpinner size="sm" /> : 'Criar conta'}
             </Button>

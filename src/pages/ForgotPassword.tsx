@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Logo } from '@/components/Logo';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { translateAuthError } from '@/utils/authErrors';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -21,6 +21,7 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const {
     register,
@@ -33,6 +34,7 @@ const ForgotPassword = () => {
 
   const onSubmit = async (data: ForgotPasswordForm) => {
     setIsLoading(true);
+    setFormError(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -41,10 +43,9 @@ const ForgotPassword = () => {
       if (error) throw error;
 
       setEmailSent(true);
-      toast.success('Email de recuperação enviado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao solicitar reset de senha:', error);
-      toast.error('Erro ao enviar email de recuperação. Tente novamente.');
+      setFormError(translateAuthError(error));
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +128,11 @@ const ForgotPassword = () => {
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
+              {formError && (
+                <p className="text-sm text-destructive">{formError}</p>
+              )}
             </div>
+
             <Button
               type="submit"
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
