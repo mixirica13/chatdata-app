@@ -18,6 +18,7 @@ interface AuthState {
   metaConnected: boolean;
   whatsappConnected: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   register: (name: string, email: string, password: string, whatsapp?: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSubscription: () => Promise<void>;
@@ -174,6 +175,17 @@ export const useAuth = create<AuthState>()(
             });
           }
         }
+      },
+
+      loginWithGoogle: async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+
+        if (error) throw error;
       },
 
       register: async (name: string, email: string, password: string, whatsapp?: string) => {

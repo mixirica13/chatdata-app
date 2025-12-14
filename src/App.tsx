@@ -26,6 +26,7 @@ const History = lazy(() => import("./pages/History"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const WhatsAppVerify = lazy(() => import("./pages/WhatsAppVerify"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LandingPageV2 = lazy(() => import("./pages/LandingPageV2"));
 const LandingPageV3 = lazy(() => import("./pages/LandingPageV3"));
@@ -96,6 +97,7 @@ const App = () => {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/auth/verify" element={<WhatsAppVerify />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/confirm-email" element={<ConfirmEmail />} />
               <Route path="/email-confirmed" element={<EmailConfirmed />} />
               <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
