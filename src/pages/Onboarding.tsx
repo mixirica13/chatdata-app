@@ -1,20 +1,81 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Zap, CheckCircle2, Facebook, MessageCircle } from 'lucide-react';
+import { Zap, CheckCircle2, Facebook, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 const Onboarding = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [name, setName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasExistingName, setHasExistingName] = useState(false);
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
 
-  const totalSteps = 2;
-  const progress = (currentStep / totalSteps) * 100;
+  const totalSteps = 3;
+  const progress = ((currentStep + 1) / totalSteps) * 100;
+
+  // Check if user already has a name
+  useEffect(() => {
+    const checkExistingName = async () => {
+      if (user) {
+        // Check user_metadata first
+        const existingName = user.user_metadata?.name || user.user_metadata?.full_name;
+        if (existingName) {
+          setName(existingName);
+          setHasExistingName(true);
+          setCurrentStep(1); // Skip name step
+        } else if (profile?.name) {
+          setName(profile.name);
+          setHasExistingName(true);
+          setCurrentStep(1); // Skip name step
+        }
+      }
+    };
+    checkExistingName();
+  }, [user, profile]);
+
+  const handleSaveName = async () => {
+    if (!name.trim()) {
+      toast.error('Por favor, insira seu nome');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Update user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { name: name.trim() }
+      });
+
+      if (updateError) throw updateError;
+
+      // Also update subscribers table if exists
+      if (user) {
+        await supabase
+          .from('subscribers')
+          .update({ name: name.trim() })
+          .eq('user_id', user.id);
+      }
+
+      setCurrentStep(1);
+    } catch (error: any) {
+      console.error('Error saving name:', error);
+      toast.error('Erro ao salvar nome. Tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleNext = () => {
-    if (currentStep < totalSteps) {
+    if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       toast.success('Configuração concluída! Bem-vindo ao ChatData.');
@@ -27,7 +88,9 @@ const Onboarding = () => {
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0 && !hasExistingName) {
+      setCurrentStep(currentStep - 1);
+    } else if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -38,11 +101,58 @@ const Onboarding = () => {
         <div className="mb-8">
           <Progress value={progress} className="h-2" />
           <p className="text-sm text-muted-foreground mt-2 text-center">
-            Passo {currentStep} de {totalSteps}
+            Passo {currentStep + 1} de {totalSteps}
           </p>
         </div>
 
         <Card>
+          {/* Step 0: Name Collection */}
+          {currentStep === 0 && (
+            <>
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-primary p-4 rounded-2xl">
+                    <User className="w-12 h-12 text-primary-foreground" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold">Como podemos te chamar?</CardTitle>
+                <CardDescription className="text-base mt-2">
+                  Nos diga seu nome para personalizarmos sua experiência
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Seu nome</Label>
+                  <Input
+                    id="name"
+                    placeholder="Ex: João Silva"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="text-lg h-12"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveName();
+                      }
+                    }}
+                  />
+                </div>
+              </CardContent>
+              <div className="flex justify-between p-6 border-t">
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                >
+                  Pular por agora
+                </Button>
+                <Button onClick={handleSaveName} disabled={isSaving || !name.trim()}>
+                  {isSaving ? <LoadingSpinner size="sm" /> : 'Continuar'}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Step 1: Welcome */}
           {currentStep === 1 && (
             <>
               <CardHeader className="text-center">
@@ -51,7 +161,9 @@ const Onboarding = () => {
                     <Zap className="w-12 h-12 text-primary-foreground" />
                   </div>
                 </div>
-                <CardTitle className="text-3xl font-bold">Bem-vindo ao ChatData</CardTitle>
+                <CardTitle className="text-3xl font-bold">
+                  {name ? `Bem-vindo, ${name.split(' ')[0]}!` : 'Bem-vindo ao ChatData'}
+                </CardTitle>
                 <CardDescription className="text-base mt-2">
                   Receba insights inteligentes das suas campanhas de Meta Ads com análises automáticas
                 </CardDescription>
@@ -87,9 +199,28 @@ const Onboarding = () => {
                   </div>
                 </div>
               </CardContent>
+              <div className="flex justify-between p-6 border-t">
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                >
+                  Pular por agora
+                </Button>
+                <div className="flex gap-2">
+                  {!hasExistingName && (
+                    <Button variant="outline" onClick={handlePrevious}>
+                      Anterior
+                    </Button>
+                  )}
+                  <Button onClick={handleNext}>
+                    Próximo
+                  </Button>
+                </div>
+              </div>
             </>
           )}
 
+          {/* Step 2: Connect Meta */}
           {currentStep === 2 && (
             <>
               <CardHeader className="text-center">
@@ -125,29 +256,24 @@ const Onboarding = () => {
                   Seus dados são seguros e nunca serão compartilhados com terceiros
                 </p>
               </CardContent>
+              <div className="flex justify-between p-6 border-t">
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                >
+                  Pular por agora
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handlePrevious}>
+                    Anterior
+                  </Button>
+                  <Button onClick={handleNext}>
+                    Concluir
+                  </Button>
+                </div>
+              </div>
             </>
           )}
-
-
-          <div className="flex justify-between p-6 border-t">
-            <Button
-              variant="ghost"
-              onClick={handleSkip}
-              disabled={currentStep === totalSteps}
-            >
-              Pular por agora
-            </Button>
-            <div className="flex gap-2">
-              {currentStep > 1 && (
-                <Button variant="outline" onClick={handlePrevious}>
-                  Anterior
-                </Button>
-              )}
-              <Button onClick={handleNext}>
-                {currentStep === totalSteps ? 'Concluir' : 'Próximo'}
-              </Button>
-            </div>
-          </div>
         </Card>
       </div>
     </div>

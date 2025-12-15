@@ -11,14 +11,10 @@ import LandingPageV4 from "./pages/LandingPageV4";
 
 // Lazy load all other pages for code splitting
 const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const ConfirmEmail = lazy(() => import("./pages/ConfirmEmail"));
-const EmailConfirmed = lazy(() => import("./pages/EmailConfirmed"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MetaAdsDashboard = lazy(() => import("./pages/MetaAdsDashboard"));
+const CustomDashboard = lazy(() => import("./pages/CustomDashboard"));
 const ConnectMeta = lazy(() => import("./pages/ConnectMeta"));
 const ConnectWhatsApp = lazy(() => import("./pages/ConnectWhatsApp"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -93,16 +89,18 @@ const App = () => {
               <Route path="/privacidade" element={<PrivacyPolicy />} />
               <Route path="/exclusao-dados" element={<DataDeletion />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+              {/* Redirecionar rotas antigas para /login (passwordless) */}
+              <Route path="/register" element={<Navigate to="/login" replace />} />
+              <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
+              <Route path="/reset-password" element={<Navigate to="/login" replace />} />
+              <Route path="/confirm-email" element={<Navigate to="/login" replace />} />
+              <Route path="/email-confirmed" element={<Navigate to="/login" replace />} />
               <Route path="/auth/verify" element={<WhatsAppVerify />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/confirm-email" element={<ConfirmEmail />} />
-              <Route path="/email-confirmed" element={<EmailConfirmed />} />
               <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/meta-ads" element={<ProtectedRoute><MetaAdsDashboard /></ProtectedRoute>} />
+              <Route path="/custom-dashboard" element={<ProtectedRoute><CustomDashboard /></ProtectedRoute>} />
               <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
               <Route path="/connect/meta" element={<ProtectedRoute><ConnectMeta /></ProtectedRoute>} />
               <Route path="/connect/whatsapp" element={<ProtectedRoute><ConnectWhatsApp /></ProtectedRoute>} />
