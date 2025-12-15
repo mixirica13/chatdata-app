@@ -145,26 +145,9 @@ export const useAuth = create<AuthState>()(
       },
 
       logout: async () => {
-        try {
-          // Track logout event before clearing session
-          try {
-            if (typeof posthog !== 'undefined' && posthog._isIdentified) {
-              posthog.capture('logout');
-              posthog.reset(); // Reset user identification
-            }
-          } catch (e) {
-            // Ignore posthog errors
-            console.warn('PostHog error during logout:', e);
-          }
-
-          const { error } = await supabase.auth.signOut();
-          if (error) throw error;
-
-          // Clear all storage to ensure clean logout
+        const resetState = () => {
           localStorage.removeItem('auth-storage');
           sessionStorage.clear();
-
-          // Reset ALL state to initial values
           set({
             user: null,
             profile: null,
@@ -179,28 +162,15 @@ export const useAuth = create<AuthState>()(
             whatsappConnected: false,
             isLoading: false,
           });
+        };
+
+        try {
+          await supabase.auth.signOut();
+          resetState();
         } catch (error) {
           console.error('Logout error:', error);
           // Force state reset even on error
-          localStorage.removeItem('auth-storage');
-          sessionStorage.clear();
-
-          set({
-            user: null,
-            profile: null,
-            isAuthenticated: false,
-            isSubscribed: false,
-            subscriptionEnd: null,
-            subscriptionTier: null,
-            subscriptionStatus: null,
-            cancelAtPeriodEnd: false,
-            hadSubscription: false,
-            metaConnected: false,
-            whatsappConnected: false,
-            isLoading: false,
-          });
-
-          throw error;
+          resetState();
         }
       },
 

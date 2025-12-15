@@ -1,33 +1,81 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        // Supabase automatically handles the OAuth callback
-        // and sets the session from the URL hash
-        const { data: { session }, error } = await supabase.auth.getSession();
+    const processSession = async (session: Session) => {
+      if (processedRef.current) return;
+      processedRef.current = true;
 
-        if (error) {
-          console.error('Auth callback error:', error);
-          navigate('/login');
-          return;
-        }
+      const user = session.user;
+
+      // Quick check for subscription - don't wait for subscriber creation
+      const { data: profile } = await supabase
+        .from('subscribers')
+        .select('subscribed')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // Create subscriber in background if doesn't exist (non-blocking)
+      if (!profile) {
+        const existingName = user.user_metadata?.name || user.user_metadata?.full_name;
+        supabase
+          .from('subscribers')
+          .insert({
+            user_id: user.id,
+            email: user.email,
+            name: existingName || null,
+            subscribed: false
+          })
+          .then(() => {})
+          .catch(console.error);
+      }
+
+      // Redirect immediately
+      if (profile?.subscribed) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/subscription', { replace: true });
+      }
+    };
+
+    const handleAuthCallback = async () => {
+      // Check URL hash for tokens (faster than waiting for getSession)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const hasTokens = hashParams.has('access_token');
+
+      if (hasTokens) {
+        // Tokens in URL - wait for Supabase to process them
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+              subscription.unsubscribe();
+              await processSession(session);
+            }
+          }
+        );
+
+        // Timeout fallback
+        setTimeout(() => {
+          if (!processedRef.current) {
+            subscription.unsubscribe();
+            navigate('/login', { replace: true });
+          }
+        }, 8000);
+      } else {
+        // No tokens in URL - check existing session
+        const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-          // User is authenticated, redirect to dashboard
-          navigate('/dashboard', { replace: true });
+          await processSession(session);
         } else {
-          // No session, redirect to login
           navigate('/login', { replace: true });
         }
-      } catch (error) {
-        console.error('Auth callback error:', error);
-        navigate('/login', { replace: true });
       }
     };
 
