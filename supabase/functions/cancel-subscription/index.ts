@@ -49,19 +49,26 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Customer found", { customerId });
 
-    // Buscar assinaturas ativas do cliente
+    // Buscar assinaturas ativas OU em trial do cliente
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: 'active',
-      limit: 1,
+      limit: 10,
     });
 
-    if (subscriptions.data.length === 0) {
-      throw new Error("No active subscription found");
+    // Filtrar para encontrar assinaturas ativas ou em trial
+    const activeSubscription = subscriptions.data.find(
+      sub => sub.status === 'active' || sub.status === 'trialing'
+    );
+
+    if (!activeSubscription) {
+      logStep("No subscription found", {
+        availableStatuses: subscriptions.data.map(s => ({ id: s.id, status: s.status }))
+      });
+      throw new Error("No active or trialing subscription found");
     }
 
-    const subscriptionId = subscriptions.data[0].id;
-    const subscription = subscriptions.data[0];
+    const subscriptionId = activeSubscription.id;
+    const subscription = activeSubscription;
 
     // Buscar current_period_end em múltiplos lugares
     let currentPeriodEnd = subscription.current_period_end;
