@@ -17,9 +17,8 @@ interface AuthState {
   hadSubscription: boolean; // Se já teve assinatura/trial antes
   metaConnected: boolean;
   whatsappConnected: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  loginWithMagicLink: (email: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  register: (name: string, email: string, password: string, whatsapp?: string) => Promise<void>;
   logout: () => Promise<void>;
   checkSubscription: () => Promise<void>;
   initialize: () => Promise<void>;
@@ -39,6 +38,7 @@ export const useAuth = create<AuthState>()(
       subscriptionTier: null,
       subscriptionStatus: null,
       cancelAtPeriodEnd: false,
+      hadSubscription: false,
       metaConnected: false,
       whatsappConnected: false,
 
@@ -107,7 +107,9 @@ export const useAuth = create<AuthState>()(
                 isSubscribed: false,
                 subscriptionEnd: null,
                 subscriptionTier: null,
+                subscriptionStatus: null,
                 cancelAtPeriodEnd: false,
+                hadSubscription: false,
                 metaConnected: false,
                 whatsappConnected: false,
               });
@@ -119,62 +121,16 @@ export const useAuth = create<AuthState>()(
         }
       },
 
-      login: async (email: string, password: string) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
+      loginWithMagicLink: async (email: string) => {
+        const { error } = await supabase.auth.signInWithOtp({
           email,
-          password,
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
         });
 
         if (error) throw error;
-
-        // Check if email is confirmed
-        if (data.user && !data.user.email_confirmed_at) {
-          await supabase.auth.signOut();
-          throw new Error('Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.');
-        }
-
-        if (data.user) {
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('subscribers')
-              .select('*')
-              .eq('user_id', data.user.id)
-              .single();
-
-            if (profileError) {
-              console.error('Error fetching subscriber profile:', profileError);
-              // Continue login even if profile fetch fails
-            }
-
-            set({
-              user: data.user,
-              profile: profile || null,
-              isAuthenticated: true,
-              isSubscribed: profile?.subscribed || false,
-              subscriptionEnd: profile?.subscription_end || null,
-              subscriptionTier: profile?.subscription_tier || null,
-              subscriptionStatus: profile?.subscription_status || null,
-              cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
-              metaConnected: profile?.meta_connected || false,
-              whatsappConnected: profile?.whatsapp_connected || false,
-            });
-          } catch (profileError) {
-            console.error('Unexpected error fetching profile:', profileError);
-            // Set authenticated state without profile
-            set({
-              user: data.user,
-              profile: null,
-              isAuthenticated: true,
-              isSubscribed: false,
-              subscriptionEnd: null,
-              subscriptionTier: null,
-              subscriptionStatus: null,
-              cancelAtPeriodEnd: false,
-              metaConnected: false,
-              whatsappConnected: false,
-            });
-          }
-        }
       },
 
       loginWithGoogle: async () => {
@@ -188,31 +144,17 @@ export const useAuth = create<AuthState>()(
         if (error) throw error;
       },
 
-      register: async (name: string, email: string, password: string, whatsapp?: string) => {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name, whatsapp },
-            emailRedirectTo: `${window.location.origin}/email-confirmed`,
-          },
-        });
-
-        if (error) throw error;
-
-        // Don't auto-login after registration - user needs to confirm email first
-        // Just throw a success message
-        if (data.user) {
-          throw new Error('REGISTRATION_SUCCESS'); // Special error code to handle in the UI
-        }
-      },
-
       logout: async () => {
         try {
           // Track logout event before clearing session
-          if (posthog.__loaded) {
-            posthog.capture('logout');
-            posthog.reset(); // Reset user identification
+          try {
+            if (typeof posthog !== 'undefined' && posthog._isIdentified) {
+              posthog.capture('logout');
+              posthog.reset(); // Reset user identification
+            }
+          } catch (e) {
+            // Ignore posthog errors
+            console.warn('PostHog error during logout:', e);
           }
 
           const { error } = await supabase.auth.signOut();
@@ -232,6 +174,7 @@ export const useAuth = create<AuthState>()(
             subscriptionTier: null,
             subscriptionStatus: null,
             cancelAtPeriodEnd: false,
+            hadSubscription: false,
             metaConnected: false,
             whatsappConnected: false,
             isLoading: false,
@@ -251,6 +194,7 @@ export const useAuth = create<AuthState>()(
             subscriptionTier: null,
             subscriptionStatus: null,
             cancelAtPeriodEnd: false,
+            hadSubscription: false,
             metaConnected: false,
             whatsappConnected: false,
             isLoading: false,
