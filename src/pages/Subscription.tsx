@@ -245,7 +245,7 @@ const Subscription = () => {
   const getButtonText = (planId: PlanType): string => {
     // Se não está inscrito e é o plano Basic, mostrar trial
     if (!isSubscribed && planId === 'basic') {
-      return 'Teste 7 Dias Grátis';
+      return 'Testar Grátis';
     }
 
     if (!isSubscribed) return 'Assinar Agora';
@@ -272,7 +272,7 @@ const Subscription = () => {
   return (
     <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
       {/* Logo fixa no header */}
-      <div className="w-full flex justify-center pt-0 pb-4">
+      <div className="w-full flex justify-center pt-2 pb-8 md:pb-4">
         <Logo className="h-16 w-auto" />
       </div>
 
@@ -467,10 +467,13 @@ const Subscription = () => {
                     <div>
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-                          {plan.price}
+                          {!isSubscribed && plan.id === 'basic' ? 'R$ 0' : plan.price}
                         </span>
                         <span className="text-white/60">/mês</span>
                       </div>
+                      {!isSubscribed && plan.id === 'basic' && (
+                        <p className="text-xs text-white/50 mt-1">após R$47/mês</p>
+                      )}
                       <p className="text-sm text-[#46CCC6] mt-1">{plan.requestLimit}</p>
                     </div>
 
@@ -487,7 +490,7 @@ const Subscription = () => {
 
                     <Button
                       size="lg"
-                      className={`w-full font-semibold ${
+                      className={`w-full font-semibold text-lg ${
                         isCurrentPlan(plan.id)
                           ? 'bg-white/10 text-white/60 cursor-not-allowed'
                           : plan.popular
@@ -532,36 +535,36 @@ const Subscription = () => {
                 className={plan.popular ? 'border-2 border-[#46CCC6]/50 shadow-xl shadow-[#46CCC6]/20' : ''}
               >
                 <Card className="bg-transparent border-0">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                  <CardHeader className="text-center">
+                    <div className="flex flex-col items-center mb-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
                         plan.popular
                           ? 'bg-gradient-to-br from-[#46CCC6] to-[#2D9B96]'
                           : 'bg-white/10'
                       }`}>
                         <plan.icon className={`w-6 h-6 ${plan.popular ? 'text-black' : 'text-[#46CCC6]'}`} />
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-                            {plan.price}
-                          </span>
-                          <span className="text-white/60 text-sm">/mês</span>
-                        </div>
-                        <p className="text-xs text-[#46CCC6]">{plan.requestLimit}</p>
-                      </div>
+                      <CardTitle className="text-xl text-white mb-1" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+                        {plan.name}
+                      </CardTitle>
+                      <CardDescription className="text-white/60">
+                        {plan.description}
+                      </CardDescription>
                     </div>
-                    <CardTitle className="text-xl text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-                      {plan.name}
-                    </CardTitle>
-                    <CardDescription className="text-white/60">
-                      {plan.description}
-                    </CardDescription>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+                          {!isSubscribed && plan.id === 'basic' ? 'R$ 0' : plan.price}
+                        </span>
+                        <span className="text-white/60 text-sm">/mês</span>
+                      </div>
+                      <p className="text-sm text-[#46CCC6] mt-1">{plan.requestLimit}</p>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       {plan.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
+                        <div key={idx} className="flex items-start gap-2 justify-center">
                           <div className="flex-shrink-0 w-4 h-4 rounded-full bg-[#46CCC6]/20 flex items-center justify-center mt-0.5">
                             <Check className="w-2.5 h-2.5 text-[#46CCC6]" />
                           </div>
@@ -572,7 +575,7 @@ const Subscription = () => {
 
                     <Button
                       size="lg"
-                      className={`w-full font-semibold ${
+                      className={`w-full font-semibold text-lg ${
                         isCurrentPlan(plan.id)
                           ? 'bg-white/10 text-white/60 cursor-not-allowed'
                           : plan.popular
@@ -587,6 +590,9 @@ const Subscription = () => {
                       ) : null}
                       {getButtonText(plan.id)}
                     </Button>
+                    {!isSubscribed && plan.id === 'basic' && (
+                      <p className="text-xs text-white/50 text-center mt-2">Após, R$47/mês</p>
+                    )}
                   </CardContent>
                 </Card>
               </LiquidGlass>
