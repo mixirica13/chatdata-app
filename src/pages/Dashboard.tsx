@@ -20,14 +20,24 @@ import {
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useTracking } from '@/hooks/useTracking';
+import { usePreTrial } from '@/hooks/usePreTrial';
+import { PreTrialPaywall } from '@/components/onboarding';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { metaConnected, disconnectMeta, whatsappConnected, disconnectWhatsapp } = useAuth();
+  const { metaConnected, disconnectMeta, whatsappConnected, disconnectWhatsapp, onboardingStep, onboardingCompleted, updateOnboardingStep } = useAuth();
   const [showConnectionAlert, setShowConnectionAlert] = useState(false);
   const [showDisconnectMetaAlert, setShowDisconnectMetaAlert] = useState(false);
   const [showDisconnectWhatsappAlert, setShowDisconnectWhatsappAlert] = useState(false);
   const { trackEvent, trackPageView } = useTracking();
+  const {
+    showPaywall,
+    setShowPaywall,
+    requestsUsed,
+    requestsLimit,
+    hasReachedLimit,
+    checkAndShowPaywall,
+  } = usePreTrial();
 
   // Track dashboard view
   useEffect(() => {
@@ -35,12 +45,48 @@ const Dashboard = () => {
     trackEvent('dashboard_viewed');
   }, [trackPageView, trackEvent]);
 
-  const handleAgentClick = () => {
+  // Inicia o onboarding automaticamente para novos usuários
+  useEffect(() => {
+    const startOnboarding = async () => {
+      // Se onboarding não foi iniciado ainda (step 0) e não está concluído
+      if (onboardingStep === 0 && !onboardingCompleted) {
+        // Se já conectou Meta, pula para passo 2
+        if (metaConnected) {
+          if (whatsappConnected) {
+            // Já conectou ambos, não precisa de onboarding
+            return;
+          }
+          await updateOnboardingStep(2);
+        } else {
+          // Começa do passo 1
+          await updateOnboardingStep(1);
+        }
+      }
+    };
+
+    startOnboarding();
+  }, [onboardingStep, onboardingCompleted, metaConnected, whatsappConnected, updateOnboardingStep]);
+
+  // Verifica limite de pre-trial ao carregar
+  useEffect(() => {
+    if (hasReachedLimit) {
+      setShowPaywall(true);
+    }
+  }, [hasReachedLimit, setShowPaywall]);
+
+  const handleAgentClick = async () => {
     if (!metaConnected || !whatsappConnected) {
       setShowConnectionAlert(true);
-    } else {
-      window.open('https://wa.me/YOUR_WHATSAPP_NUMBER', '_blank');
+      return;
     }
+
+    // Verifica limite de pre-trial antes de abrir conversa
+    const shouldBlock = await checkAndShowPaywall();
+    if (shouldBlock) {
+      return;
+    }
+
+    window.open('https://wa.me/YOUR_WHATSAPP_NUMBER', '_blank');
   };
 
   const handleDisconnectMeta = async () => {
@@ -75,16 +121,19 @@ const Dashboard = () => {
       {/* Content centralizado */}
       <div className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md space-y-4">
-          <LiquidGlass className="p-1">
-            <ConnectionCard
-              title="Meta Ads"
-              description="Conecte sua conta de anúncios do Facebook"
-              icon={Facebook}
-              connected={metaConnected}
-              onConnect={() => navigate('/connect/meta')}
-              onDisconnect={() => setShowDisconnectMetaAlert(true)}
-            />
-          </LiquidGlass>
+          {/* Card Meta Ads - data attribute para onboarding */}
+          <div data-onboarding-target="meta">
+            <LiquidGlass className="p-1">
+              <ConnectionCard
+                title="Meta Ads"
+                description="Conecte sua conta de anúncios do Facebook"
+                icon={Facebook}
+                connected={metaConnected}
+                onConnect={() => navigate('/connect/meta')}
+                onDisconnect={() => setShowDisconnectMetaAlert(true)}
+              />
+            </LiquidGlass>
+          </div>
 
           {/* Dashboard de Métricas */}
           {metaConnected && (
@@ -144,18 +193,20 @@ const Dashboard = () => {
             </>
           )}
 
-          {/* WhatsApp Section */}
+          {/* WhatsApp Section - data attribute para onboarding */}
           <>
-              <LiquidGlass className="p-1">
-                <ConnectionCard
-                  title="WhatsApp"
-                  description="Autentique seu número para usar a IA via WhatsApp"
-                  icon={MessageCircle}
-                  connected={whatsappConnected}
-                  onConnect={() => navigate('/connect/whatsapp')}
-                  onDisconnect={() => setShowDisconnectWhatsappAlert(true)}
-                />
-              </LiquidGlass>
+              <div data-onboarding-target="whatsapp">
+                <LiquidGlass className="p-1">
+                  <ConnectionCard
+                    title="WhatsApp"
+                    description="Autentique seu número para usar a IA via WhatsApp"
+                    icon={MessageCircle}
+                    connected={whatsappConnected}
+                    onConnect={() => navigate('/connect/whatsapp')}
+                    onDisconnect={() => setShowDisconnectWhatsappAlert(true)}
+                  />
+                </LiquidGlass>
+              </div>
 
               {/* Box do Agente de IA */}
               <LiquidGlass className="p-1">
@@ -342,6 +393,14 @@ const Dashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Paywall para Pre-Trial */}
+      <PreTrialPaywall
+        isOpen={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        requestsUsed={requestsUsed}
+        requestsLimit={requestsLimit}
+      />
     </div>
   );
 };

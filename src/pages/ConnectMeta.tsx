@@ -15,7 +15,7 @@ const ConnectMeta = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const hasProcessedToken = useRef(false);
-  const { user, checkSubscription } = useAuth();
+  const { user, checkSubscription, refreshProfile, onboardingStep, updateOnboardingStep } = useAuth();
   const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
   const navigate = useNavigate();
   const { trackEvent, trackPageView } = useTracking();
@@ -70,6 +70,12 @@ const ConnectMeta = () => {
 
         // Refresh user profile to update metaConnected flag
         await checkSubscription();
+        await refreshProfile();
+
+        // Avançar onboarding se estava no passo 1 (Meta)
+        if (onboardingStep === 1) {
+          await updateOnboardingStep(2);
+        }
 
         // Track successful connection
         const permissions = authResponse.grantedScopes?.split(',') || [];
@@ -201,21 +207,23 @@ const ConnectMeta = () => {
                   </p>
                 </div>
 
-                <Button
-                  onClick={handleConnect}
-                  disabled={isLoading || !isInitialized || isSaving}
-                  className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
-                  size="lg"
-                >
-                  {isLoading || isSaving ? (
-                    <LoadingSpinner size="sm" />
-                  ) : (
-                    <>
-                      <Facebook className="w-5 h-5 mr-2" />
-                      {connectionError ? 'Tentar Novamente' : 'Conectar com Meta'}
-                    </>
-                  )}
-                </Button>
+                <div data-onboarding-target="meta-button">
+                  <Button
+                    onClick={handleConnect}
+                    disabled={isLoading || !isInitialized || isSaving}
+                    className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
+                    size="lg"
+                  >
+                    {isLoading || isSaving ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <>
+                        <Facebook className="w-5 h-5 mr-2" />
+                        {connectionError ? 'Tentar Novamente' : 'Conectar com Meta'}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </>
             ) : (
               <div className="space-y-4">

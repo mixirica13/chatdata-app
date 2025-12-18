@@ -56,6 +56,9 @@ export type Database = {
           user_id: string
           whatsapp_connected: boolean | null
           whatsapp_phone: string | null
+          pre_trial_requests_count: number | null
+          onboarding_completed: boolean | null
+          onboarding_step: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -73,6 +76,9 @@ export type Database = {
           user_id: string
           whatsapp_connected?: boolean | null
           whatsapp_phone?: string | null
+          pre_trial_requests_count?: number | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -90,6 +96,9 @@ export type Database = {
           user_id?: string
           whatsapp_connected?: boolean | null
           whatsapp_phone?: string | null
+          pre_trial_requests_count?: number | null
+          onboarding_completed?: boolean | null
+          onboarding_step?: number | null
         }
         Relationships: []
       }

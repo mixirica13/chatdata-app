@@ -17,6 +17,10 @@ interface AuthState {
   hadSubscription: boolean; // Se já teve assinatura/trial antes
   metaConnected: boolean;
   whatsappConnected: boolean;
+  // Onboarding e Pre-trial
+  preTrialRequestsCount: number;
+  onboardingCompleted: boolean;
+  onboardingStep: number;
   loginWithMagicLink: (email: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -24,6 +28,10 @@ interface AuthState {
   initialize: () => Promise<void>;
   disconnectMeta: () => Promise<void>;
   disconnectWhatsapp: () => Promise<void>;
+  // Onboarding functions
+  updateOnboardingStep: (step: number) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const useAuth = create<AuthState>()(
@@ -41,6 +49,10 @@ export const useAuth = create<AuthState>()(
       hadSubscription: false,
       metaConnected: false,
       whatsappConnected: false,
+      // Onboarding e Pre-trial
+      preTrialRequestsCount: 0,
+      onboardingCompleted: false,
+      onboardingStep: 0,
 
       initialize: async () => {
         try {
@@ -65,6 +77,10 @@ export const useAuth = create<AuthState>()(
               cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
+              // Onboarding e Pre-trial
+              preTrialRequestsCount: profile?.pre_trial_requests_count || 0,
+              onboardingCompleted: profile?.onboarding_completed || false,
+              onboardingStep: profile?.onboarding_step || 0,
               isLoading: false,
             });
 
@@ -94,6 +110,10 @@ export const useAuth = create<AuthState>()(
                 cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
                 metaConnected: profile?.meta_connected || false,
                 whatsappConnected: profile?.whatsapp_connected || false,
+                // Onboarding e Pre-trial
+                preTrialRequestsCount: profile?.pre_trial_requests_count || 0,
+                onboardingCompleted: profile?.onboarding_completed || false,
+                onboardingStep: profile?.onboarding_step || 0,
               });
 
               if (event === 'SIGNED_IN') {
@@ -112,6 +132,10 @@ export const useAuth = create<AuthState>()(
                 hadSubscription: false,
                 metaConnected: false,
                 whatsappConnected: false,
+                // Reset onboarding e pre-trial
+                preTrialRequestsCount: 0,
+                onboardingCompleted: false,
+                onboardingStep: 0,
               });
             }
           });
@@ -160,6 +184,10 @@ export const useAuth = create<AuthState>()(
             hadSubscription: false,
             metaConnected: false,
             whatsappConnected: false,
+            // Reset onboarding e pre-trial
+            preTrialRequestsCount: 0,
+            onboardingCompleted: false,
+            onboardingStep: 0,
             isLoading: false,
           });
         };
@@ -201,6 +229,10 @@ export const useAuth = create<AuthState>()(
               cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
               metaConnected: profile?.meta_connected || false,
               whatsappConnected: profile?.whatsapp_connected || false,
+              // Onboarding e Pre-trial
+              preTrialRequestsCount: profile?.pre_trial_requests_count || 0,
+              onboardingCompleted: profile?.onboarding_completed || false,
+              onboardingStep: profile?.onboarding_step || 0,
             });
           }
         } catch (error) {
@@ -269,6 +301,79 @@ export const useAuth = create<AuthState>()(
         } catch (error) {
           console.error('Disconnect WhatsApp error:', error);
           throw error;
+        }
+      },
+
+      // Onboarding functions
+      updateOnboardingStep: async (step: number) => {
+        try {
+          const state = get();
+          if (state.user) {
+            const { error } = await supabase
+              .from('subscribers')
+              .update({ onboarding_step: step })
+              .eq('user_id', state.user.id);
+
+            if (error) throw error;
+
+            set({ onboardingStep: step });
+          }
+        } catch (error) {
+          console.error('Update onboarding step error:', error);
+          throw error;
+        }
+      },
+
+      completeOnboarding: async () => {
+        try {
+          const state = get();
+          if (state.user) {
+            const { error } = await supabase
+              .from('subscribers')
+              .update({
+                onboarding_completed: true,
+                onboarding_step: 3
+              })
+              .eq('user_id', state.user.id);
+
+            if (error) throw error;
+
+            set({ onboardingCompleted: true, onboardingStep: 3 });
+          }
+        } catch (error) {
+          console.error('Complete onboarding error:', error);
+          throw error;
+        }
+      },
+
+      refreshProfile: async () => {
+        try {
+          const state = get();
+          if (state.user) {
+            const { data: profile } = await supabase
+              .from('subscribers')
+              .select('*')
+              .eq('user_id', state.user.id)
+              .single();
+
+            if (profile) {
+              set({
+                profile,
+                isSubscribed: profile?.subscribed || false,
+                subscriptionEnd: profile?.subscription_end,
+                subscriptionTier: profile?.subscription_tier || null,
+                subscriptionStatus: profile?.subscription_status || null,
+                cancelAtPeriodEnd: profile?.cancel_at_period_end || false,
+                metaConnected: profile?.meta_connected || false,
+                whatsappConnected: profile?.whatsapp_connected || false,
+                preTrialRequestsCount: profile?.pre_trial_requests_count || 0,
+                onboardingCompleted: profile?.onboarding_completed || false,
+                onboardingStep: profile?.onboarding_step || 0,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Refresh profile error:', error);
         }
       },
     }),

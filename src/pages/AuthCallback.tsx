@@ -36,12 +36,10 @@ const AuthCallback = () => {
           .catch(console.error);
       }
 
-      // Redirect immediately
-      if (profile?.subscribed) {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/subscription', { replace: true });
-      }
+      // Pre-trial: Sempre redireciona para dashboard
+      // O onboarding vai ser iniciado automaticamente no dashboard para novos usuários
+      // O paywall será mostrado quando atingir o limite de requisições
+      navigate('/dashboard', { replace: true });
     };
 
     const handleAuthCallback = async () => {

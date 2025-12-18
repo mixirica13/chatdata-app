@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { OnboardingProvider, OnboardingOverlay } from "@/components/onboarding";
 
 // Eagerly load landing page (first paint)
 import LandingPageV4 from "./pages/LandingPageV4";
@@ -40,7 +41,7 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, isSubscribed } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -54,11 +55,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Allow access to subscription, reset-password and settings pages even without active subscription
-  const allowedPaths = ['/subscription', '/reset-password', '/settings'];
-  if (!isSubscribed && !allowedPaths.includes(window.location.pathname)) {
-    return <Navigate to="/subscription" replace />;
-  }
+  // Pre-trial: Usuários não-assinantes podem usar o app com limite de 5 requisições
+  // O bloqueio de assinatura foi removido para permitir o pre-trial
 
   return <>{children}</>;
 };
@@ -75,9 +73,10 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+        <OnboardingProvider>
+          <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               {/* Landing page loaded eagerly for fast first paint */}
               <Route path="/" element={<LandingPageV4 />} />
 
@@ -107,9 +106,12 @@ const App = () => {
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+              </Routes>
+              {/* Overlay do Onboarding - renderizado globalmente */}
+              <OnboardingOverlay />
+            </Suspense>
+          </BrowserRouter>
+        </OnboardingProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -16,7 +16,7 @@ const ConnectWhatsApp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [linkSent, setLinkSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const { user } = useAuth();
+  const { user, onboardingStep, completeOnboarding, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const { trackEvent, trackPageView } = useTracking();
 
@@ -125,6 +125,14 @@ const ConnectWhatsApp = () => {
           .update({ whatsapp_phone: fullPhone })
           .eq('user_id', user.id);
 
+        // Atualizar profile no estado global
+        await refreshProfile();
+
+        // Completar onboarding se estava no passo 2 (WhatsApp)
+        if (onboardingStep === 2) {
+          await completeOnboarding();
+        }
+
         // Track successful connection
         trackEvent('whatsapp_connection_completed', {
           phone_number_hash: `***${cleanPhone.slice(-4)}`,
@@ -201,7 +209,7 @@ const ConnectWhatsApp = () => {
                   </ul>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-onboarding-target="whatsapp-input">
                   <Label htmlFor="phone">Número do WhatsApp</Label>
                   <Input
                     id="phone"
