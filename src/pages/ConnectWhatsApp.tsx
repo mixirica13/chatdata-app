@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { MessageCircle, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { WhatsAppIcon } from '@/components/WhatsAppIcon';
 import { toast } from 'sonner';
 import { useTracking } from '@/hooks/useTracking';
 
@@ -171,7 +172,7 @@ const ConnectWhatsApp = () => {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <div className="bg-green-500 p-4 rounded-2xl">
-                <MessageCircle className="w-12 h-12 text-white" />
+                <WhatsAppIcon size={48} className="text-white" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold">
@@ -209,7 +210,7 @@ const ConnectWhatsApp = () => {
                   </ul>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-onboarding-target="whatsapp-input">
                   <Label htmlFor="phone">Número do WhatsApp</Label>
                   <Input
                     id="phone"
@@ -244,7 +245,7 @@ const ConnectWhatsApp = () => {
                     <LoadingSpinner size="sm" />
                   ) : (
                     <>
-                      <MessageCircle className="w-5 h-5 mr-2" />
+                      <WhatsAppIcon size={20} className="mr-2" />
                       Enviar Link de Autenticação
                     </>
                   )}
@@ -252,21 +253,28 @@ const ConnectWhatsApp = () => {
               </>
             ) : (
               <>
-                <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+                <div className="flex items-center justify-center gap-2 text-green-400 bg-green-500/10 border border-green-500/20 p-4 rounded-lg">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-semibold">Link enviado para {phone}</span>
                 </div>
 
+                <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 p-4 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-200">
+                    <strong>Importante:</strong> O link expira em 10 minutos. Se não recebeu, verifique se o número está correto e tente reenviar.
+                  </div>
+                </div>
+
                 {isVerifying && (
-                  <div className="flex items-center justify-center gap-2 text-blue-600 bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 text-blue-400 bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
                     <LoadingSpinner size="sm" />
                     <span className="text-sm">Aguardando autenticação...</span>
                   </div>
                 )}
 
-                <div className="bg-muted p-4 rounded-lg text-sm space-y-3">
-                  <p className="font-medium">Próximos passos:</p>
-                  <ol className="space-y-2 list-decimal list-inside text-muted-foreground">
+                <div className="bg-zinc-800/50 border border-white/5 p-4 rounded-lg text-sm space-y-3">
+                  <p className="font-medium text-white">Próximos passos:</p>
+                  <ol className="space-y-2 list-decimal list-inside text-white/70">
                     <li>Abra seu WhatsApp no celular</li>
                     <li>Você receberá uma mensagem com um link</li>
                     <li>Clique no link para autenticar</li>
@@ -274,14 +282,18 @@ const ConnectWhatsApp = () => {
                   </ol>
                 </div>
 
-                <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-amber-900 dark:text-amber-100">
-                    <strong>Importante:</strong> O link expira em 10 minutos. Se não recebeu, verifique se o número está correto e tente reenviar.
-                  </div>
-                </div>
-
                 <div className="flex flex-col gap-2">
+                  <Button
+                    asChild
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold"
+                    size="lg"
+                  >
+                    <a href="https://wa.me/554391727732" target="_blank" rel="noopener noreferrer">
+                      <WhatsAppIcon size={20} className="mr-2" />
+                      Ir para WhatsApp
+                    </a>
+                  </Button>
+
                   <Button
                     variant="outline"
                     onClick={handleResend}
@@ -289,14 +301,6 @@ const ConnectWhatsApp = () => {
                     className="w-full"
                   >
                     Enviar para outro número
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/dashboard')}
-                    className="w-full"
-                  >
-                    Fazer depois
                   </Button>
                 </div>
               </>

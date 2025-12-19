@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from './StatusBadge';
 import { LucideIcon } from 'lucide-react';
+import { ComponentType } from 'react';
 
 interface ConnectionCardProps {
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: LucideIcon | ComponentType<{ className?: string }>;
   connected: boolean;
   onConnect: () => void;
   onDisconnect: () => void;

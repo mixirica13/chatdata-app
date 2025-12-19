@@ -43,14 +43,25 @@ const ONBOARDING_CONFIG = {
       action: 'navigate', // navega para /connect/whatsapp
       position: 'bottom' as const,
     },
-    '/connect/whatsapp': {
-      selector: '[data-onboarding-target="whatsapp-button"]',
-      title: 'Envie o link de autenticação',
-      description: 'Digite seu número de WhatsApp acima e clique neste botão. Você receberá um link de verificação no seu WhatsApp para confirmar sua identidade.',
-      nextLabel: 'Entendi',
-      action: 'dismiss', // fecha o tooltip para o usuário clicar no botão
-      position: 'top' as const,
-    },
+    // Sub-passos na página do WhatsApp
+    '/connect/whatsapp': [
+      {
+        selector: '[data-onboarding-target="whatsapp-input"]',
+        title: 'Digite seu número',
+        description: 'Insira seu número de WhatsApp com DDD (ex: 11 99999-9999). Vamos enviar um link de verificação para confirmar sua identidade.',
+        nextLabel: 'Próximo',
+        action: 'next-substep', // avança para o próximo sub-passo
+        position: 'bottom' as const,
+      },
+      {
+        selector: '[data-onboarding-target="whatsapp-button"]',
+        title: 'Envie o link',
+        description: 'Agora clique no botão para receber o link de autenticação no seu WhatsApp.',
+        nextLabel: 'Entendi',
+        action: 'dismiss', // fecha o tooltip para o usuário clicar no botão
+        position: 'top' as const,
+      },
+    ],
   },
 };
 
@@ -71,13 +82,20 @@ export const OnboardingOverlay = () => {
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [subStep, setSubStep] = useState(0); // Para sub-passos dentro de uma página
 
-  // Pega a configuração atual baseada no passo e na página
+  // Pega a configuração atual baseada no passo, página e sub-passo
   const currentConfig = useMemo(() => {
     const stepConfig = ONBOARDING_CONFIG[onboardingStep as 1 | 2];
     if (!stepConfig) return null;
-    return stepConfig[location.pathname as keyof typeof stepConfig] || null;
-  }, [onboardingStep, location.pathname]);
+    const pageConfig = stepConfig[location.pathname as keyof typeof stepConfig];
+    if (!pageConfig) return null;
+    // Se for um array (sub-passos), pega o sub-passo atual
+    if (Array.isArray(pageConfig)) {
+      return pageConfig[subStep] || null;
+    }
+    return pageConfig;
+  }, [onboardingStep, location.pathname, subStep]);
 
   // Determina se deve mostrar o onboarding
   const shouldShow = isAuthenticated &&
@@ -87,10 +105,31 @@ export const OnboardingOverlay = () => {
     currentConfig !== null &&
     (onboardingStep === 1 || onboardingStep === 2);
 
-  // Reset dismissed quando muda de página
+  // Reset dismissed e subStep quando muda de página
   useEffect(() => {
     setDismissed(false);
+    setSubStep(0);
   }, [location.pathname]);
+
+  // Fecha overlay quando o elemento alvo é clicado diretamente (só para ação "dismiss")
+  useEffect(() => {
+    if (!currentConfig || !isVisible) return;
+    // Só adiciona listener se a ação atual for "dismiss" (último passo antes de interagir)
+    if (currentConfig.action !== 'dismiss') return;
+
+    const element = document.querySelector(currentConfig.selector);
+    if (!element) return;
+
+    const handleTargetClick = () => {
+      setDismissed(true);
+      setIsVisible(false);
+    };
+
+    element.addEventListener('click', handleTargetClick);
+    return () => {
+      element.removeEventListener('click', handleTargetClick);
+    };
+  }, [currentConfig, isVisible]);
 
   // Encontra e observa o elemento alvo
   const updateTargetRect = useCallback(() => {
@@ -182,25 +221,37 @@ export const OnboardingOverlay = () => {
       } else if (onboardingStep === 2) {
         navigate('/connect/whatsapp');
       }
+    } else if (currentConfig.action === 'next-substep') {
+      // Avança para o próximo sub-passo
+      setSubStep(prev => prev + 1);
     } else if (currentConfig.action === 'dismiss') {
-      // Apenas fecha o tooltip para o usuário interagir com o elemento
+      // Fecha o tooltip e clica no elemento alvo automaticamente
       setDismissed(true);
       setIsVisible(false);
+
+      // Clica automaticamente no botão alvo
+      const element = document.querySelector(currentConfig.selector) as HTMLElement;
+      if (element) {
+        setTimeout(() => {
+          element.click();
+        }, 100);
+      }
     }
   }, [currentConfig, onboardingStep, navigate]);
 
-  // Handler para pular
+  // Handler para pular - apenas fecha temporariamente, não completa o onboarding
   const handleSkip = useCallback(async () => {
     setIsVisible(false);
     setDismissed(true);
-    setTimeout(async () => {
-      if (onboardingStep === 1) {
+    // Avança para o próximo passo, mas nunca completa o onboarding
+    // O onboarding só é completado quando o WhatsApp for conectado
+    if (onboardingStep === 1) {
+      setTimeout(async () => {
         await updateOnboardingStep(2);
-      } else {
-        await completeOnboarding();
-      }
-    }, 200);
-  }, [onboardingStep, updateOnboardingStep, completeOnboarding]);
+      }, 200);
+    }
+    // No passo 2, apenas fecha temporariamente - volta a aparecer ao navegar
+  }, [onboardingStep, updateOnboardingStep]);
 
   // Não renderiza se não deve mostrar ou não está visível
   if (!shouldShow || !isVisible || !currentConfig) return null;
@@ -278,7 +329,7 @@ export const OnboardingOverlay = () => {
         onNext={handleNext}
         onSkip={handleSkip}
         nextLabel={currentConfig.nextLabel}
-        isLastStep={onboardingStep === 2 && location.pathname === '/connect/whatsapp'}
+        isLastStep={onboardingStep === 2 && location.pathname === '/connect/whatsapp' && subStep === 1}
       />
     </>
   );
