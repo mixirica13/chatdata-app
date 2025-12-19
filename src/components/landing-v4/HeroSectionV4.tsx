@@ -17,10 +17,10 @@ export const HeroSectionV4 = () => {
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#46CCC6]/10 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-6 pt-8 pb-20">
+      <div className="relative z-10 container mx-auto px-6 pt-8 pb-8">
         {/* Logo */}
         <div className="flex justify-center mb-8 animate-fade-in">
-          <Logo className="h-24 w-auto md:h-32" />
+          <Logo className="h-16 w-auto md:h-20" />
         </div>
 
         {/* Badge */}
@@ -32,17 +32,17 @@ export const HeroSectionV4 = () => {
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight text-center animate-fade-in-up" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-          IA de Tráfego Pago
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight text-center animate-fade-in-up" style={{ fontFamily: 'Exo 2, sans-serif' }}>
+          Insights em tempo real das suas campanhas direto no
           <br />
           <span className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] bg-clip-text text-transparent">
-            no WhatsApp
+            WhatsApp com IA
           </span>
         </h1>
 
         {/* Subheadline */}
         <p className="text-lg md:text-xl text-white/70 max-w-3xl mx-auto mb-8 text-center leading-relaxed animate-fade-in-up">
-          Pergunte sobre suas campanhas, receba insights e ações para melhorar seu ROI, tudo no Whatsapp
+          Sem precisar perder tempo abrindo o gerenciador de anúncios
         </p>
 
         {/* Value prop */}

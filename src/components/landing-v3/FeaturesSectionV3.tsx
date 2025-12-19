@@ -54,7 +54,7 @@ const features = [
 
 export const FeaturesSectionV3 = () => {
   return (
-    <section className="relative py-16 bg-black overflow-hidden">
+    <section className="relative pt-8 pb-16 bg-black overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-[#46CCC6]/5 to-black" />
 
