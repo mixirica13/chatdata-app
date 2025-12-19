@@ -46,7 +46,10 @@ const plans: Plan[] = [
     description: 'Ideal para começar com IA',
     features: [
       'Acesso à IA ChatData no WhatsApp',
-      'Dashboard geral com métricas principais',
+      'Dashboard customizável',
+      'Burn-up chart para acompanhamento',
+      'Controle de gastos detalhado',
+      'Alerta de saldo para contas pré-pagas',
       '50 requisições/dia',
     ],
     popular: true,
@@ -564,7 +567,7 @@ const Subscription = () => {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       {plan.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-start gap-2 justify-center">
+                        <div key={idx} className="flex items-start gap-2">
                           <div className="flex-shrink-0 w-4 h-4 rounded-full bg-[#46CCC6]/20 flex items-center justify-center mt-0.5">
                             <Check className="w-2.5 h-2.5 text-[#46CCC6]" />
                           </div>
