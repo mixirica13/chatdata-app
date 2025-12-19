@@ -209,7 +209,7 @@ const ConnectWhatsApp = () => {
                   </ul>
                 </div>
 
-                <div className="space-y-2" data-onboarding-target="whatsapp-input">
+                <div className="space-y-2">
                   <Label htmlFor="phone">Número do WhatsApp</Label>
                   <Input
                     id="phone"
@@ -238,6 +238,7 @@ const ConnectWhatsApp = () => {
                   disabled={isLoading || phone.replace(/\D/g, '').length < 10}
                   className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold"
                   size="lg"
+                  data-onboarding-target="whatsapp-button"
                 >
                   {isLoading ? (
                     <LoadingSpinner size="sm" />

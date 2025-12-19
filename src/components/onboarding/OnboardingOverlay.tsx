@@ -44,11 +44,11 @@ const ONBOARDING_CONFIG = {
       position: 'bottom' as const,
     },
     '/connect/whatsapp': {
-      selector: '[data-onboarding-target="whatsapp-input"]',
-      title: 'Digite seu número',
-      description: 'Insira seu número de WhatsApp com DDD. Vamos enviar um link de verificação para você confirmar que é o dono desse número.',
+      selector: '[data-onboarding-target="whatsapp-button"]',
+      title: 'Envie o link de autenticação',
+      description: 'Digite seu número de WhatsApp acima e clique neste botão. Você receberá um link de verificação no seu WhatsApp para confirmar sua identidade.',
       nextLabel: 'Entendi',
-      action: 'dismiss', // fecha o tooltip para o usuário digitar
+      action: 'dismiss', // fecha o tooltip para o usuário clicar no botão
       position: 'top' as const,
     },
   },
