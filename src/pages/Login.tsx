@@ -13,7 +13,8 @@ import { Logo } from '@/components/Logo';
 import { useTracking } from '@/hooks/useTracking';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Mail, ArrowLeft, CheckCircle2, ExternalLink } from 'lucide-react';
+import { getEmailProviderUrl, getEmailProviderName } from '@/utils/emailProvider';
 
 const emailSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -119,7 +120,7 @@ const Login = () => {
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-primary" />
+                <Mail className="w-8 h-8 text-primary" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-white">Verifique seu email</CardTitle>
@@ -137,6 +138,14 @@ const Login = () => {
             </div>
 
             <div className="space-y-3">
+              <Button
+                className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
+                onClick={() => window.open(getEmailProviderUrl(sentEmail), '_blank')}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Abrir {getEmailProviderName(sentEmail)}
+              </Button>
+
               <Button
                 variant="outline"
                 className="w-full bg-transparent border-white/20 text-white hover:bg-white/10"

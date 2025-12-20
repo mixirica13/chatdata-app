@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Exo+2:wght@700&display=swap');
-
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #0a0a0a;
             color: #ffffff;
             line-height: 1.6;
@@ -28,19 +26,9 @@
             position: relative;
         }
 
-        .logo {
-            position: relative;
-            z-index: 1;
-            width: 180px;
-            height: auto;
-            margin: 0 auto 20px;
-            display: block;
-        }
-
         .title {
             position: relative;
             z-index: 1;
-            font-family: 'Exo 2', sans-serif;
             font-size: 32px;
             font-weight: 700;
             margin: 0 0 20px;
@@ -105,6 +93,18 @@
             color: #000000 !important;
         }
 
+        .secondary-link {
+            color: #46CCC6;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        .secondary-link:hover {
+            text-decoration: underline;
+        }
+
         .footer {
             padding: 40px;
             text-align: center;
@@ -151,11 +151,6 @@
                 padding: 16px 35px;
                 font-size: 15px;
             }
-
-            .logo {
-                width: 150px;
-                height: auto;
-            }
         }
     </style>
 </head>
@@ -163,7 +158,6 @@
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <img src="https://qcohdtsvvahebfciuklc.supabase.co/storage/v1/object/public/emails/logo-chatdata.png" alt="ChatData Logo" class="logo">
             <h1 class="title">Confirme seu email</h1>
             <p class="subtitle">Falta só um passo para começar</p>
         </div>
@@ -190,6 +184,12 @@
             <p class="text" style="font-size: 13px; color: rgba(255, 255, 255, 0.5);">
                 Se você não criou uma conta no ChatData, pode ignorar este email com segurança.
             </p>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="{{ .EmailProviderURL }}" class="secondary-link">
+                    Não recebeu o email? Abrir meu email →
+                </a>
+            </div>
         </div>
 
         <!-- Footer -->

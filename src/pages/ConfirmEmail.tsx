@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Mail, CheckCircle2, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { getEmailProviderUrl, getEmailProviderName } from '@/utils/emailProvider';
 
 const ConfirmEmail = () => {
   const [searchParams] = useSearchParams();
@@ -92,6 +93,15 @@ const ConfirmEmail = () => {
 
           <div className="space-y-3">
             <Button
+              onClick={() => window.open(getEmailProviderUrl(email), '_blank')}
+              className="w-full"
+              disabled={!email}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Abrir {getEmailProviderName(email)}
+            </Button>
+
+            <Button
               onClick={handleResendEmail}
               disabled={isResending || !email}
               variant="outline"
@@ -113,6 +123,7 @@ const ConfirmEmail = () => {
             {showLoginButton && (
               <Button
                 onClick={() => navigate('/login')}
+                variant="secondary"
                 className="w-full"
               >
                 Ir para Login
