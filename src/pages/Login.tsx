@@ -14,7 +14,7 @@ import { useTracking } from '@/hooks/useTracking';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Mail, ArrowLeft, CheckCircle2, ExternalLink } from 'lucide-react';
-import { getEmailProviderUrl, getEmailProviderName } from '@/utils/emailProvider';
+import { openEmailProvider, getEmailProviderName } from '@/utils/emailProvider';
 
 const emailSchema = z.object({
   email: z.string().email('Email inválido').trim(),
@@ -140,7 +140,7 @@ const Login = () => {
             <div className="space-y-3">
               <Button
                 className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
-                onClick={() => window.open(getEmailProviderUrl(sentEmail), '_blank')}
+                onClick={() => openEmailProvider(sentEmail)}
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Abrir {getEmailProviderName(sentEmail)}

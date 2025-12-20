@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, CheckCircle2, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { getEmailProviderUrl, getEmailProviderName } from '@/utils/emailProvider';
+import { openEmailProvider, getEmailProviderName } from '@/utils/emailProvider';
 
 const ConfirmEmail = () => {
   const [searchParams] = useSearchParams();
@@ -93,7 +93,7 @@ const ConfirmEmail = () => {
 
           <div className="space-y-3">
             <Button
-              onClick={() => window.open(getEmailProviderUrl(email), '_blank')}
+              onClick={() => openEmailProvider(email)}
               className="w-full"
               disabled={!email}
             >

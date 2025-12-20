@@ -1,15 +1,48 @@
 /**
+ * Detecta se o usuário está em um dispositivo móvel
+ * @returns true se estiver em mobile, false caso contrário
+ */
+export function isMobile(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false;
+  }
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+/**
+ * Mapeamento de deep links para apps de email em mobile
+ */
+const deepLinks: Record<string, string> = {
+  'gmail.com': 'googlegmail://',
+  'googlemail.com': 'googlegmail://',
+  'outlook.com': 'ms-outlook://',
+  'hotmail.com': 'ms-outlook://',
+  'live.com': 'ms-outlook://',
+  'yahoo.com': 'ymail://',
+  'yahoo.com.br': 'ymail://',
+};
+
+/**
  * Obtém a URL do provedor de email baseado no domínio do email
+ * Em mobile, retorna deep link se disponível; em desktop, retorna webmail
  * @param email - O endereço de email do usuário
- * @returns A URL do webmail do provedor
+ * @returns A URL (deep link ou webmail) do provedor
  */
 export function getEmailProviderUrl(email: string): string {
   if (!email || !email.includes('@')) {
-    return 'https://mail.google.com';
+    return isMobile() && deepLinks['gmail.com']
+      ? deepLinks['gmail.com']
+      : 'https://mail.google.com';
   }
 
   const domain = email.split('@')[1].toLowerCase();
 
+  // Se estiver em mobile e houver deep link, usar deep link
+  if (isMobile() && deepLinks[domain]) {
+    return deepLinks[domain];
+  }
+
+  // Caso contrário, usar webmail
   const providers: Record<string, string> = {
     'gmail.com': 'https://mail.google.com',
     'googlemail.com': 'https://mail.google.com',
@@ -58,4 +91,21 @@ export function getEmailProviderName(email: string): string {
   };
 
   return providerNames[domain] || 'seu email';
+}
+
+/**
+ * Abre o provedor de email (app em mobile, webmail em desktop)
+ * @param email - O endereço de email do usuário
+ */
+export function openEmailProvider(email: string): void {
+  const url = getEmailProviderUrl(email);
+  const domain = email.split('@')[1]?.toLowerCase();
+
+  // Se for deep link (mobile), usar window.location.href
+  if (isMobile() && domain && deepLinks[domain]) {
+    window.location.href = url;
+  } else {
+    // Se for webmail (desktop), abrir em nova aba
+    window.open(url, '_blank');
+  }
 }
