@@ -94,18 +94,35 @@ export function getEmailProviderName(email: string): string {
 }
 
 /**
- * Abre o provedor de email (app em mobile, webmail em desktop)
+ * Abre o provedor de email (app em mobile via mailto:, webmail em desktop)
  * @param email - O endereço de email do usuário
  */
 export function openEmailProvider(email: string): void {
-  const url = getEmailProviderUrl(email);
-  const domain = email.split('@')[1]?.toLowerCase();
-
-  // Se for deep link (mobile), usar window.location.href
-  if (isMobile() && domain && deepLinks[domain]) {
-    window.location.href = url;
+  if (isMobile()) {
+    // Em mobile: usar mailto: para abrir app de email padrão
+    window.location.href = 'mailto:';
   } else {
-    // Se for webmail (desktop), abrir em nova aba
+    // Desktop: abrir webmail diretamente
+    const url = getEmailProviderUrl(email);
     window.open(url, '_blank');
   }
+}
+
+/**
+ * Obtém URL do webmail para um domínio específico
+ * @param domain - Domínio do email
+ * @returns URL do webmail
+ */
+function getWebmailUrl(domain: string): string {
+  const providers: Record<string, string> = {
+    'gmail.com': 'https://mail.google.com',
+    'googlemail.com': 'https://mail.google.com',
+    'outlook.com': 'https://outlook.live.com/mail/',
+    'hotmail.com': 'https://outlook.live.com/mail/',
+    'live.com': 'https://outlook.live.com/mail/',
+    'yahoo.com': 'https://mail.yahoo.com',
+    'yahoo.com.br': 'https://mail.yahoo.com',
+  };
+
+  return providers[domain] || 'https://mail.google.com';
 }
