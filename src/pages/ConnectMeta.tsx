@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { Facebook, CheckCircle2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { CheckCircle2, ArrowLeft, AlertCircle, Facebook } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTracking } from '@/hooks/useTracking';
@@ -39,6 +39,14 @@ const ConnectMeta = () => {
       setIsSaving(true);
       setConnectionError(null);
 
+      // Safety timeout: if saving takes more than 30 seconds, show error
+      const safetyTimeout = setTimeout(() => {
+        console.error('Connection timeout - operation took too long');
+        setConnectionError('A conexão demorou muito. Por favor, tente novamente.');
+        setIsSaving(false);
+        hasProcessedToken.current = false;
+      }, 30000);
+
       try {
         console.log('Exchanging Facebook token for long-lived token...');
 
@@ -52,6 +60,7 @@ const ConnectMeta = () => {
         });
 
         if (exchangeError) {
+          clearTimeout(safetyTimeout);
           console.error('Token exchange error:', exchangeError);
           hasProcessedToken.current = false; // Allow retry
 
@@ -69,12 +78,17 @@ const ConnectMeta = () => {
         console.log('Token exchanged successfully:', data);
 
         // Refresh user profile to update metaConnected flag
-        await checkSubscription();
-        await refreshProfile();
+        // Wrap in try-catch to prevent blocking navigation on error
+        try {
+          await checkSubscription();
+          await refreshProfile();
 
-        // Avançar onboarding se estava no passo 1 (Meta)
-        if (onboardingStep === 1) {
-          await updateOnboardingStep(2);
+          // Avançar onboarding se estava no passo 1 (Meta)
+          if (onboardingStep === 1) {
+            await updateOnboardingStep(2);
+          }
+        } catch (profileError) {
+          console.error('Error refreshing profile (non-blocking):', profileError);
         }
 
         // Track successful connection
@@ -84,13 +98,22 @@ const ConnectMeta = () => {
           permissions_granted: permissions,
         });
 
+        clearTimeout(safetyTimeout);
         toast.success('Meta Ads conectado com sucesso!');
+        setIsSaving(false);
 
         // Navigate to dashboard after a short delay
+        // Use window.location as fallback for iOS Safari compatibility
         setTimeout(() => {
-          navigate('/dashboard');
-        }, 1000);
+          try {
+            navigate('/dashboard');
+          } catch (navError) {
+            console.error('Navigation error, using fallback:', navError);
+            window.location.href = '/dashboard';
+          }
+        }, 500);
       } catch (error) {
+        clearTimeout(safetyTimeout);
         console.error('Error saving connection:', error);
         hasProcessedToken.current = false; // Allow retry
 
@@ -106,7 +129,7 @@ const ConnectMeta = () => {
     };
 
     saveConnection();
-  }, [authResponse, user, trackEvent, checkSubscription, navigate]);
+  }, [authResponse, user, trackEvent, checkSubscription, refreshProfile, onboardingStep, updateOnboardingStep, navigate]);
 
   const handleConnect = async () => {
     try {
@@ -132,7 +155,7 @@ const ConnectMeta = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <div className="max-w-2xl mx-auto pt-8">
+      <div className="max-w-2xl mx-auto">
         <Button
           variant="ghost"
           className="mb-4"
@@ -145,9 +168,11 @@ const ConnectMeta = () => {
         <Card>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="bg-blue-500 p-4 rounded-2xl">
-                <Facebook className="w-12 h-12 text-white" />
-              </div>
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2023_Facebook_icon.svg/128px-2023_Facebook_icon.svg.png"
+                alt="Facebook"
+                className="w-20 h-20"
+              />
             </div>
             <CardTitle className="text-2xl font-bold">Conectar Meta Ads</CardTitle>
             <CardDescription>
@@ -178,24 +203,24 @@ const ConnectMeta = () => {
                 <div className="bg-muted p-4 rounded-lg space-y-3">
                   <p className="font-medium">Permissões necessárias:</p>
                   <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       Gerenciar e ler campanhas e anúncios
                     </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       Acessar métricas de performance (impressões, cliques, conversões)
                     </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       Ver informações de públicos e segmentações
                     </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       Acessar relatórios de orçamento e gastos
                     </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       Gerenciar Business Manager
                     </li>
                   </ul>
@@ -219,7 +244,7 @@ const ConnectMeta = () => {
                     ) : (
                       <>
                         <Facebook className="w-5 h-5 mr-2" />
-                        {connectionError ? 'Tentar Novamente' : 'Conectar com Meta'}
+                        {connectionError ? 'Tentar Novamente' : 'Conectar com Facebook'}
                       </>
                     )}
                   </Button>
