@@ -15,7 +15,7 @@ const ConnectMeta = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const hasProcessedToken = useRef(false);
-  const { user, checkSubscription, refreshProfile, onboardingStep, updateOnboardingStep } = useAuth();
+  const { user, refreshProfile, onboardingStep, updateOnboardingStep } = useAuth();
   const { isInitialized, isLoading, authResponse, login } = useFacebookLogin();
   const navigate = useNavigate();
   const { trackEvent, trackPageView } = useTracking();
@@ -54,7 +54,7 @@ const ConnectMeta = () => {
         const { data, error: exchangeError } = await supabase.functions.invoke('exchange-facebook-token', {
           body: {
             short_lived_token: authResponse.accessToken,
-            ad_account_ids: [], // Empty array - user will select accounts later
+            ad_account_ids: [],
             granted_permissions: authResponse.grantedScopes?.split(',') || [],
           },
         });
@@ -75,43 +75,31 @@ const ConnectMeta = () => {
           return;
         }
 
-        console.log('Token exchanged successfully:', data);
-
-        // Refresh user profile to update metaConnected flag
-        // Wrap in try-catch to prevent blocking navigation on error
-        try {
-          await checkSubscription();
-          await refreshProfile();
-
-          // Avançar onboarding se estava no passo 1 (Meta)
-          if (onboardingStep === 1) {
-            await updateOnboardingStep(2);
-          }
-        } catch (profileError) {
-          console.error('Error refreshing profile (non-blocking):', profileError);
-        }
+        clearTimeout(safetyTimeout);
 
         // Track successful connection
         const permissions = authResponse.grantedScopes?.split(',') || [];
         trackEvent('meta_connection_completed', {
-          ad_accounts_count: 0, // Will be updated when user selects accounts
+          ad_accounts_count: 0,
           permissions_granted: permissions,
         });
 
-        clearTimeout(safetyTimeout);
         toast.success('Meta Ads conectado com sucesso!');
-        setIsSaving(false);
 
-        // Navigate to dashboard after a short delay
-        // Use window.location as fallback for iOS Safari compatibility
-        setTimeout(() => {
+        // Navigate immediately using window.location for iOS Safari compatibility
+        window.location.href = '/dashboard';
+
+        // Fire-and-forget: refresh profile in background (don't await)
+        Promise.resolve().then(async () => {
           try {
-            navigate('/dashboard');
-          } catch (navError) {
-            console.error('Navigation error, using fallback:', navError);
-            window.location.href = '/dashboard';
+            await refreshProfile();
+            if (onboardingStep === 1) {
+              await updateOnboardingStep(2);
+            }
+          } catch (e) {
+            console.error('Background profile refresh error:', e);
           }
-        }, 500);
+        });
       } catch (error) {
         clearTimeout(safetyTimeout);
         console.error('Error saving connection:', error);
@@ -129,7 +117,7 @@ const ConnectMeta = () => {
     };
 
     saveConnection();
-  }, [authResponse, user, trackEvent, checkSubscription, refreshProfile, onboardingStep, updateOnboardingStep, navigate]);
+  }, [authResponse, user, trackEvent, refreshProfile, onboardingStep, updateOnboardingStep]);
 
   const handleConnect = async () => {
     try {
