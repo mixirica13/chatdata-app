@@ -1,4 +1,21 @@
 /**
+ * Detecta se o usuário está em um dispositivo móvel
+ */
+function isMobile(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+/**
+ * Verifica se o email é Gmail
+ */
+function isGmail(email: string): boolean {
+  if (!email || !email.includes('@')) return false;
+  const domain = email.split('@')[1].toLowerCase();
+  return domain === 'gmail.com' || domain === 'googlemail.com';
+}
+
+/**
  * Obtém a URL do webmail do provedor de email baseado no domínio
  * @param email - O endereço de email do usuário
  * @returns A URL do webmail do provedor
@@ -61,10 +78,19 @@ export function getEmailProviderName(email: string): string {
 }
 
 /**
- * Abre o provedor de email no navegador (webmail)
+ * Abre o provedor de email
+ * - Gmail em mobile: tenta deep link (googlegmail://)
+ * - Outros: abre webmail em nova aba
  * @param email - O endereço de email do usuário
  */
 export function openEmailProvider(email: string): void {
+  // Gmail em mobile: usar deep link
+  if (isMobile() && isGmail(email)) {
+    window.location.href = 'googlegmail://';
+    return;
+  }
+
+  // Demais casos: abrir webmail
   const url = getEmailProviderUrl(email);
   window.open(url, '_blank');
 }
