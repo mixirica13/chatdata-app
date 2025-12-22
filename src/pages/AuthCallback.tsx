@@ -36,10 +36,17 @@ const AuthCallback = () => {
           .catch(console.error);
       }
 
-      // Pre-trial: Sempre redireciona para dashboard
-      // O onboarding vai ser iniciado automaticamente no dashboard para novos usuários
-      // O paywall será mostrado quando atingir o limite de requisições
-      navigate('/dashboard', { replace: true });
+      // Check for stored returnUrl (from MCP OAuth flow)
+      const storedReturnUrl = sessionStorage.getItem('auth_return_url');
+      if (storedReturnUrl) {
+        sessionStorage.removeItem('auth_return_url');
+        navigate(storedReturnUrl, { replace: true });
+      } else {
+        // Pre-trial: Sempre redireciona para dashboard
+        // O onboarding vai ser iniciado automaticamente no dashboard para novos usuários
+        // O paywall será mostrado quando atingir o limite de requisições
+        navigate('/dashboard', { replace: true });
+      }
     };
 
     const handleAuthCallback = async () => {

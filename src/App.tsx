@@ -30,6 +30,7 @@ const LandingPageV3 = lazy(() => import("./pages/LandingPageV3"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataDeletion = lazy(() => import("./pages/DataDeletion"));
+const McpAuth = lazy(() => import("./pages/McpAuth"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -96,6 +97,7 @@ const App = () => {
               <Route path="/email-confirmed" element={<Navigate to="/login" replace />} />
               <Route path="/auth/verify" element={<WhatsAppVerify />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/auth/mcp" element={<McpAuth />} />
               <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/meta-ads" element={<ProtectedRoute><MetaAdsDashboard /></ProtectedRoute>} />

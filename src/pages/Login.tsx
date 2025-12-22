@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,7 +30,11 @@ const Login = () => {
   const [isResending, setIsResending] = useState(false);
   const { loginWithGoogle, isAuthenticated, initialize } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { trackEvent, trackPageView } = useTracking();
+
+  // Get returnUrl from query params (used for MCP OAuth flow)
+  const returnUrl = searchParams.get('returnUrl');
 
   useEffect(() => {
     initialize();
@@ -40,9 +44,23 @@ const Login = () => {
     trackPageView('login_page');
   }, [trackPageView]);
 
+  // Store returnUrl in sessionStorage for use after OAuth callback
+  useEffect(() => {
+    if (returnUrl) {
+      sessionStorage.setItem('auth_return_url', returnUrl);
+    }
+  }, [returnUrl]);
+
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      // Check for stored returnUrl (from MCP OAuth flow)
+      const storedReturnUrl = sessionStorage.getItem('auth_return_url');
+      if (storedReturnUrl) {
+        sessionStorage.removeItem('auth_return_url');
+        navigate(storedReturnUrl);
+      } else {
+        navigate('/dashboard');
+      }
     }
   }, [isAuthenticated, navigate]);
 
