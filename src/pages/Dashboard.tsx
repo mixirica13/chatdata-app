@@ -5,7 +5,7 @@ import { LiquidGlass } from '@/components/LiquidGlass';
 import { BottomNav } from '@/components/BottomNav';
 import { Logo } from '@/components/Logo';
 import { WhatsAppIcon } from '@/components/WhatsAppIcon';
-import { Facebook } from 'lucide-react';
+import { Facebook, Bot, Copy, Check, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -29,6 +29,11 @@ const Dashboard = () => {
   const [showConnectionAlert, setShowConnectionAlert] = useState(false);
   const [showDisconnectMetaAlert, setShowDisconnectMetaAlert] = useState(false);
   const [showDisconnectWhatsappAlert, setShowDisconnectWhatsappAlert] = useState(false);
+  const [showMcpInstructions, setShowMcpInstructions] = useState(false);
+  const [mcpUrlCopied, setMcpUrlCopied] = useState(false);
+
+  // MCP Server URL from environment
+  const mcpServerUrl = import.meta.env.VITE_MCP_SERVER_URL || 'https://meta-ads-mcp-server.chatdata.workers.dev/sse';
   const { trackEvent, trackPageView } = useTracking();
   const {
     showPaywall,
@@ -111,6 +116,18 @@ const Dashboard = () => {
     }
   };
 
+  const handleCopyMcpUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(mcpServerUrl);
+      setMcpUrlCopied(true);
+      toast.success('URL copiada!');
+      setTimeout(() => setMcpUrlCopied(false), 2000);
+    } catch (error) {
+      console.error('Error copying URL:', error);
+      toast.error('Erro ao copiar URL');
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
       {/* Logo fixa no header */}
@@ -135,6 +152,30 @@ const Dashboard = () => {
             </LiquidGlass>
           </div>
 
+          {/* Card MCP - Claude Integration */}
+          <LiquidGlass className="p-1">
+            <div className="bg-gradient-to-br from-[#D97706]/10 to-[#D97706]/5 backdrop-blur-sm rounded-2xl p-4 border border-[#D97706]/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-[#D97706]/20 p-2 rounded-lg">
+                    <Bot className="w-5 h-5 text-[#D97706]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">MCP para Claude</h3>
+                    <p className="text-sm text-gray-400">Conecte o Claude AI aos seus dados</p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Button
+                  onClick={() => setShowMcpInstructions(true)}
+                  className="w-full bg-[#D97706] hover:bg-[#D97706]/90 text-white font-semibold"
+                >
+                  Conectar
+                </Button>
+              </div>
+            </div>
+          </LiquidGlass>
 
           {/* WhatsApp Section - data attribute para onboarding */}
           <>
@@ -344,6 +385,118 @@ const Dashboard = () => {
         requestsUsed={requestsUsed}
         requestsLimit={requestsLimit}
       />
+
+      {/* Modal de Instruções do MCP */}
+      <AlertDialog open={showMcpInstructions} onOpenChange={setShowMcpInstructions}>
+        <AlertDialogContent className="bg-black border-2 border-[#D97706]/30 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <AlertDialogHeader className="flex-shrink-0">
+            <AlertDialogTitle className="text-xl font-bold text-white text-center">
+              Conectar ao Claude
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400 text-center pt-1 text-sm">
+              Siga os passos abaixo para conectar seus dados ao Claude AI
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-3 py-3 overflow-y-auto flex-1 min-h-0">
+            {/* URL do MCP com botão de copiar */}
+            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+              <p className="text-xs text-gray-400 mb-2">URL do Servidor MCP:</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0 bg-black/50 rounded-lg p-2 overflow-hidden">
+                  <code className="text-[#D97706] text-xs block truncate">
+                    {mcpServerUrl}
+                  </code>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyMcpUrl}
+                  className="bg-transparent border-[#D97706]/30 text-[#D97706] hover:bg-[#D97706]/10 flex-shrink-0 h-8 w-8 p-0"
+                >
+                  {mcpUrlCopied ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Passos */}
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#D97706] text-black text-xs font-bold flex-shrink-0 mt-0.5">
+                  1
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm">
+                    Acesse os conectores do Claude
+                  </p>
+                  <a
+                    href="https://claude.ai/settings/connectors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[#D97706] text-xs hover:underline"
+                  >
+                    claude.ai/settings/connectors
+                    <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#D97706] text-black text-xs font-bold flex-shrink-0 mt-0.5">
+                  2
+                </div>
+                <p className="text-white text-sm">
+                  Clique em <span className="text-[#D97706] font-medium">"Adicionar conector"</span>
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#D97706] text-black text-xs font-bold flex-shrink-0 mt-0.5">
+                  3
+                </div>
+                <p className="text-white text-sm">
+                  Cole a URL e clique em <span className="text-[#D97706] font-medium">"Adicionar"</span>
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2">
+                <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[#D97706] text-black text-xs font-bold flex-shrink-0 mt-0.5">
+                  4
+                </div>
+                <p className="text-white text-sm">
+                  Clique em <span className="text-[#D97706] font-medium">"Veicular"</span> para autenticar
+                </p>
+              </div>
+            </div>
+
+            {/* Nota */}
+            <div className="bg-[#D97706]/10 rounded-lg p-2 border border-[#D97706]/20">
+              <p className="text-xs text-[#D97706]">
+                Após conectar, use o Claude para analisar seus dados do Meta Ads.
+              </p>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="flex-shrink-0 gap-2 sm:gap-2 pt-2">
+            <AlertDialogCancel className="bg-white/5 text-white border-white/10 hover:bg-white/10">
+              Fechar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#D97706] text-white hover:bg-[#D97706]/90 font-semibold"
+              onClick={() => {
+                window.open('https://claude.ai/settings/connectors', '_blank');
+              }}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Abrir Claude
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
