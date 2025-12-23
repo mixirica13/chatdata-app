@@ -2,10 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
+import { useTracking } from '@/hooks/useTracking';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const processedRef = useRef(false);
+  const { trackEvent } = useTracking();
 
   useEffect(() => {
     const processSession = async (session: Session) => {
@@ -22,8 +24,11 @@ const AuthCallback = () => {
         .maybeSingle();
 
       // Create subscriber in background if doesn't exist (non-blocking)
-      if (!profile) {
+      const isNewUser = !profile;
+      if (isNewUser) {
         const existingName = user.user_metadata?.name || user.user_metadata?.full_name;
+        const authProvider = user.app_metadata?.provider || 'email';
+
         supabase
           .from('subscribers')
           .insert({
@@ -32,7 +37,13 @@ const AuthCallback = () => {
             name: existingName || null,
             subscribed: false
           })
-          .then(() => {})
+          .then(() => {
+            // Track registration completed for new users
+            trackEvent('registration_completed', {
+              auth_provider: authProvider,
+              email_domain: user.email?.split('@')[1],
+            });
+          })
           .catch(console.error);
       }
 
