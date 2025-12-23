@@ -61,7 +61,7 @@ const Header = () => {
 };
 
 // Hero Section
-const HeroSection = () => {
+const HeroSection = ({ onCtaClick }: { onCtaClick: (location: string) => void }) => {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
@@ -86,7 +86,7 @@ const HeroSection = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link to="/register">
+          <Link to="/register" onClick={() => onCtaClick('hero')}>
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6">
               Connect Meta Ads
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -345,7 +345,7 @@ const DashboardSection = () => {
 };
 
 // Pricing Section
-const PricingSection = () => {
+const PricingSection = ({ onCtaClick }: { onCtaClick: (location: string) => void }) => {
   return (
     <section className="py-24 px-4" id="pricing">
       <div className="max-w-4xl mx-auto">
@@ -384,7 +384,7 @@ const PricingSection = () => {
               ))}
             </ul>
 
-            <Link to="/register" className="block">
+            <Link to="/register" className="block" onClick={() => onCtaClick('pricing')}>
               <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6">
                 Connect Meta Ads
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -443,7 +443,7 @@ const FAQSection = () => {
 };
 
 // CTA Section
-const CTASection = () => {
+const CTASection = ({ onCtaClick }: { onCtaClick: (location: string) => void }) => {
   return (
     <section className="py-24 px-4">
       <div className="max-w-4xl mx-auto text-center">
@@ -452,7 +452,7 @@ const CTASection = () => {
           <p className="text-xl text-muted-foreground mb-8">
             Stop switching between tabs. Start asking questions.
           </p>
-          <Link to="/register">
+          <Link to="/register" onClick={() => onCtaClick('footer_cta')}>
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-6">
               Connect Meta Ads
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -492,7 +492,7 @@ const FooterSection = () => {
 
 // Main Landing Page Component
 const LandingPageMCP2 = () => {
-  const { trackPageView } = useTracking();
+  const { trackPageView, trackEvent } = useTracking();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -508,18 +508,26 @@ const LandingPageMCP2 = () => {
     });
   }, [trackPageView]);
 
+  const handleCtaClick = (location: string) => {
+    trackEvent('cta_clicked', {
+      cta_text: 'Connect Meta Ads',
+      cta_location: location,
+      page: 'landing_page_mcp2',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <div className="pt-16"> {/* Offset for fixed header */}
-        <HeroSection />
+        <HeroSection onCtaClick={handleCtaClick} />
         <FeaturesSection />
         <HowItWorksSection />
         <ExampleQueriesSection />
         <DashboardSection />
-        <PricingSection />
+        <PricingSection onCtaClick={handleCtaClick} />
         <FAQSection />
-        <CTASection />
+        <CTASection onCtaClick={handleCtaClick} />
         <FooterSection />
       </div>
     </div>
