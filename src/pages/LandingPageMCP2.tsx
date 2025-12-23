@@ -492,7 +492,7 @@ const FooterSection = () => {
 
 // Main Landing Page Component
 const LandingPageMCP2 = () => {
-  const { trackPageView, trackEvent } = useTracking();
+  const { trackPageView, trackEvent, posthog } = useTracking();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -500,13 +500,34 @@ const LandingPageMCP2 = () => {
     const utmMedium = params.get('utm_medium') || undefined;
     const utmCampaign = params.get('utm_campaign') || undefined;
 
-    trackPageView('landing_page_mcp2', {
-      page_version: 'mcp2',
-      utm_source: utmSource,
-      utm_medium: utmMedium,
-      utm_campaign: utmCampaign,
-    });
-  }, [trackPageView]);
+    const trackPage = () => {
+      trackPageView('landing_page_mcp2', {
+        page_version: 'mcp2',
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+      });
+    };
+
+    // If PostHog is already loaded, track immediately
+    if (posthog.__loaded) {
+      trackPage();
+    } else {
+      // Wait for PostHog to load (retry up to 10 times with 200ms interval)
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (posthog.__loaded) {
+          trackPage();
+          clearInterval(interval);
+        } else if (attempts >= 10) {
+          clearInterval(interval);
+        }
+      }, 200);
+
+      return () => clearInterval(interval);
+    }
+  }, [trackPageView, posthog]);
 
   const handleCtaClick = (location: string) => {
     trackEvent('cta_clicked', {
