@@ -33,7 +33,7 @@ const ONBOARDING_CONFIG = {
       position: 'top' as const,
     },
   },
-  // Passo 2: Conectar WhatsApp
+  /* Passo 2: Conectar WhatsApp - COMENTADO TEMPORARIAMENTE
   2: {
     '/dashboard': {
       selector: '[data-onboarding-target="whatsapp"]',
@@ -63,6 +63,7 @@ const ONBOARDING_CONFIG = {
       },
     ],
   },
+  */
 };
 
 export const OnboardingOverlay = () => {
@@ -98,12 +99,13 @@ export const OnboardingOverlay = () => {
   }, [onboardingStep, location.pathname, subStep]);
 
   // Determina se deve mostrar o onboarding
+  // Removido passo 2 (WhatsApp) temporariamente - agora só mostra passo 1 (Meta)
   const shouldShow = isAuthenticated &&
     !onboardingCompleted &&
     !isSubscribed &&
     !dismissed &&
     currentConfig !== null &&
-    (onboardingStep === 1 || onboardingStep === 2);
+    onboardingStep === 1;
 
   // Reset dismissed e subStep quando muda de página
   useEffect(() => {
@@ -193,22 +195,22 @@ export const OnboardingOverlay = () => {
   }, [shouldShow, onboardingStep, updateTargetRect]);
 
   // Auto-avança quando conexão é feita
+  // Removido passo 2 (WhatsApp) temporariamente - completa onboarding após conectar Meta
   useEffect(() => {
     if (onboardingStep === 1 && metaConnected) {
       // Pequeno delay para o usuário ver que conectou
       setTimeout(() => {
-        if (whatsappConnected) {
-          completeOnboarding();
-        } else {
-          updateOnboardingStep(2);
-        }
+        completeOnboarding();
       }, 500);
-    } else if (onboardingStep === 2 && whatsappConnected) {
+    }
+    /* Passo 2 WhatsApp comentado temporariamente
+    else if (onboardingStep === 2 && whatsappConnected) {
       setTimeout(() => {
         completeOnboarding();
       }, 500);
     }
-  }, [metaConnected, whatsappConnected, onboardingStep, updateOnboardingStep, completeOnboarding]);
+    */
+  }, [metaConnected, onboardingStep, completeOnboarding]);
 
   // Handler para avançar
   const handleNext = useCallback(() => {
@@ -218,9 +220,12 @@ export const OnboardingOverlay = () => {
       // Navega para a página de conexão
       if (onboardingStep === 1) {
         navigate('/connect/meta');
-      } else if (onboardingStep === 2) {
+      }
+      /* Passo 2 WhatsApp comentado temporariamente
+      else if (onboardingStep === 2) {
         navigate('/connect/whatsapp');
       }
+      */
     } else if (currentConfig.action === 'next-substep') {
       // Avança para o próximo sub-passo
       setSubStep(prev => prev + 1);
@@ -240,18 +245,19 @@ export const OnboardingOverlay = () => {
   }, [currentConfig, onboardingStep, navigate]);
 
   // Handler para pular - apenas fecha temporariamente, não completa o onboarding
+  // Removido passo 2 (WhatsApp) temporariamente - pular apenas fecha o overlay
   const handleSkip = useCallback(async () => {
     setIsVisible(false);
     setDismissed(true);
-    // Avança para o próximo passo, mas nunca completa o onboarding
-    // O onboarding só é completado quando o WhatsApp for conectado
+    // Apenas fecha temporariamente - volta a aparecer ao navegar
+    /* Passo 2 WhatsApp comentado temporariamente
     if (onboardingStep === 1) {
       setTimeout(async () => {
         await updateOnboardingStep(2);
       }, 200);
     }
-    // No passo 2, apenas fecha temporariamente - volta a aparecer ao navegar
-  }, [onboardingStep, updateOnboardingStep]);
+    */
+  }, []);
 
   // Não renderiza se não deve mostrar ou não está visível
   if (!shouldShow || !isVisible || !currentConfig) return null;
@@ -319,17 +325,18 @@ export const OnboardingOverlay = () => {
       )}
 
       {/* Tooltip */}
+      {/* totalSteps alterado de 2 para 1 (WhatsApp removido temporariamente) */}
       <OnboardingTooltip
         title={currentConfig.title}
         description={currentConfig.description}
         stepNumber={onboardingStep}
-        totalSteps={2}
+        totalSteps={1}
         position={currentConfig.position}
         targetRect={targetRect as DOMRect | null}
         onNext={handleNext}
         onSkip={handleSkip}
         nextLabel={currentConfig.nextLabel}
-        isLastStep={onboardingStep === 2 && location.pathname === '/connect/whatsapp' && subStep === 1}
+        isLastStep={onboardingStep === 1 && location.pathname === '/connect/meta'}
       />
     </>
   );

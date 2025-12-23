@@ -99,7 +99,7 @@ const plans: Plan[] = [
     id: 'mcp',
     name: 'Chatdata MCP',
     icon: BarChart3,
-    price: 'R$ 97',
+    price: '$10',
     priceId: 'price_1ShLvVA76CJavEvOTW5qeasM',
     description: 'Integração MCP com Claude, ChatGPT e outras LLM\'s',
     features: [
@@ -109,6 +109,7 @@ const plans: Plan[] = [
       'Integração com ChatGPT',
       'Consultas de Meta Ads via IA',
       'Insights de campanhas em tempo real',
+      'Dashboard customizável',
       'Requisições ilimitadas',
     ],
     popular: true,

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Zap, CheckCircle2, Facebook, User } from 'lucide-react';
+import { Zap, CheckCircle2, Facebook, User, Bot, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,7 +19,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
 
-  const totalSteps = 3;
+  const totalSteps = 4;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   // Check if user already has a name
@@ -79,7 +79,7 @@ const Onboarding = () => {
       setCurrentStep(currentStep + 1);
     } else {
       toast.success('Configuração concluída! Bem-vindo ao ChatData.');
-      navigate('/dashboard');
+      navigate('/custom-dashboard');
     }
   };
 
@@ -152,7 +152,7 @@ const Onboarding = () => {
             </>
           )}
 
-          {/* Step 1: Welcome */}
+          {/* Step 1: Welcome - COMENTADO (WhatsApp removido temporariamente)
           {currentStep === 1 && (
             <>
               <CardHeader className="text-center">
@@ -219,9 +219,10 @@ const Onboarding = () => {
               </div>
             </>
           )}
+          */}
 
-          {/* Step 2: Connect Meta */}
-          {currentStep === 2 && (
+          {/* Step 1: Connect Meta */}
+          {currentStep === 1 && (
             <>
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
@@ -254,6 +255,116 @@ const Onboarding = () => {
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
                   Seus dados são seguros e nunca serão compartilhados com terceiros
+                </p>
+              </CardContent>
+              <div className="flex justify-between p-6 border-t">
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                >
+                  Pular por agora
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handlePrevious}>
+                    Anterior
+                  </Button>
+                  <Button onClick={handleNext}>
+                    Próximo
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Step 2: MCP Integration */}
+          {currentStep === 2 && (
+            <>
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-purple-500 p-4 rounded-2xl">
+                    <Bot className="w-12 h-12 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold">Integração MCP</CardTitle>
+                <CardDescription className="text-base mt-2">
+                  Conecte suas ferramentas de IA favoritas para análises avançadas
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="bg-muted p-4 rounded-lg space-y-3">
+                  <p className="font-medium">Integrações disponíveis:</p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      Claude Desktop e Claude.ai
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      ChatGPT
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      Outras LLMs compatíveis com MCP
+                    </li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Consulte seus dados de Meta Ads diretamente na sua IA preferida
+                </p>
+              </CardContent>
+              <div className="flex justify-between p-6 border-t">
+                <Button
+                  variant="ghost"
+                  onClick={handleSkip}
+                >
+                  Pular por agora
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handlePrevious}>
+                    Anterior
+                  </Button>
+                  <Button onClick={handleNext}>
+                    Próximo
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Step 3: Dashboard Customizável */}
+          {currentStep === 3 && (
+            <>
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-green-500 p-4 rounded-2xl">
+                    <LayoutDashboard className="w-12 h-12 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold">Dashboard Customizável</CardTitle>
+                <CardDescription className="text-base mt-2">
+                  Visualize suas métricas do jeito que você preferir
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="bg-muted p-4 rounded-lg space-y-3">
+                  <p className="font-medium">Recursos do Dashboard:</p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      Arraste e solte widgets
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      Escolha suas métricas favoritas
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      Visualização em tempo real
+                    </li>
+                  </ul>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Personalize seu painel para focar no que realmente importa
                 </p>
               </CardContent>
               <div className="flex justify-between p-6 border-t">

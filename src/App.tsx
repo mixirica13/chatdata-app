@@ -27,6 +27,8 @@ const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LandingPageV2 = lazy(() => import("./pages/LandingPageV2"));
 const LandingPageV3 = lazy(() => import("./pages/LandingPageV3"));
+const LandingPageMCP = lazy(() => import("./pages/LandingPageMCP"));
+const LandingPageMCP2 = lazy(() => import("./pages/LandingPageMCP2"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataDeletion = lazy(() => import("./pages/DataDeletion"));
@@ -85,6 +87,8 @@ const App = () => {
               <Route path="/lp-v1" element={<LandingPage />} />
               <Route path="/lp-v2" element={<LandingPageV2 />} />
               <Route path="/lp-v3" element={<LandingPageV3 />} />
+              <Route path="/mcp" element={<LandingPageMCP />} />
+              <Route path="/mcp2" element={<LandingPageMCP2 />} />
               <Route path="/termos" element={<TermsOfService />} />
               <Route path="/privacidade" element={<PrivacyPolicy />} />
               <Route path="/exclusao-dados" element={<DataDeletion />} />
