@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-type PlanType = 'basic' | 'pro' | 'agency';
+type PlanType = 'basic' | 'pro' | 'agency' | 'mcp';
 
 interface Plan {
   id: PlanType;
@@ -34,6 +34,7 @@ interface Plan {
   features: string[];
   popular: boolean;
   requestLimit: string;
+  visible?: boolean;
 }
 
 const plans: Plan[] = [
@@ -52,8 +53,9 @@ const plans: Plan[] = [
       'Alerta de saldo para contas pré-pagas',
       '50 requisições/dia',
     ],
-    popular: true,
+    popular: false,
     requestLimit: '50 requisições/dia',
+    visible: false,
   },
   {
     id: 'pro',
@@ -72,6 +74,7 @@ const plans: Plan[] = [
     ],
     popular: false,
     requestLimit: '100 requisições/dia',
+    visible: false,
   },
   {
     id: 'agency',
@@ -90,6 +93,27 @@ const plans: Plan[] = [
     ],
     popular: false,
     requestLimit: 'Requisições ilimitadas',
+    visible: false,
+  },
+  {
+    id: 'mcp',
+    name: 'Chatdata MCP',
+    icon: BarChart3,
+    price: 'R$ 97',
+    priceId: 'price_1ShLvVA76CJavEvOTW5qeasM',
+    description: 'Integração MCP com Claude, ChatGPT e outras LLM\'s',
+    features: [
+      'Acesso ao servidor MCP remoto',
+      'Integração com Claude Desktop',
+      'Integração com Claude.ai',
+      'Integração com ChatGPT',
+      'Consultas de Meta Ads via IA',
+      'Insights de campanhas em tempo real',
+      'Requisições ilimitadas',
+    ],
+    popular: true,
+    requestLimit: 'Requisições ilimitadas',
+    visible: true,
   },
 ];
 
@@ -130,6 +154,7 @@ const Subscription = () => {
     'basic': 1,
     'pro': 2,
     'agency': 3,
+    'mcp': 4,
   };
 
   const handleSubscribe = async (priceId: string, planId: PlanType) => {
@@ -268,9 +293,10 @@ const Subscription = () => {
     return isSubscribed && subscriptionTier === planId;
   };
 
-  // Reorganizar planos: no desktop coloca Basic no centro, no mobile por ordem de preço
-  const desktopOrder = [plans[1], plans[0], plans[2]]; // Pro, Basic, Agency
-  const mobileOrder = [...plans]; // Basic, Pro, Agency (ordem original por preço)
+  // Filtrar apenas planos visíveis
+  const visiblePlans = plans.filter(p => p.visible !== false);
+  const desktopOrder = visiblePlans;
+  const mobileOrder = visiblePlans;
 
   return (
     <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
@@ -426,8 +452,8 @@ const Subscription = () => {
           </p>
         </div>
 
-        {/* Grid de planos - Desktop (3 colunas com Basic no centro) */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6">
+        {/* Grid de planos - Desktop */}
+        <div className={`hidden md:grid gap-6 ${visiblePlans.length === 1 ? 'md:grid-cols-1 max-w-lg mx-auto' : visiblePlans.length === 2 ? 'md:grid-cols-2 max-w-3xl mx-auto' : 'md:grid-cols-3'}`}>
           {desktopOrder.map((plan) => (
             <div key={plan.id} className="relative">
               {plan.popular && !isCurrentPlan(plan.id) && (
