@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { OnboardingProvider, OnboardingOverlay } from "@/components/onboarding";
 
 // Eagerly load landing page (first paint)
-import LandingPageV4 from "./pages/LandingPageV4";
+import LandingPageMCP2 from "./pages/LandingPageMCP2";
 
 // Lazy load all other pages for code splitting
 const Login = lazy(() => import("./pages/Login"));
@@ -28,7 +28,7 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LandingPageV2 = lazy(() => import("./pages/LandingPageV2"));
 const LandingPageV3 = lazy(() => import("./pages/LandingPageV3"));
 const LandingPageMCP = lazy(() => import("./pages/LandingPageMCP"));
-const LandingPageMCP2 = lazy(() => import("./pages/LandingPageMCP2"));
+const LandingPageV4 = lazy(() => import("./pages/LandingPageV4"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataDeletion = lazy(() => import("./pages/DataDeletion"));
@@ -81,14 +81,14 @@ const App = () => {
             <Suspense fallback={<PageLoader />}>
               <Routes>
               {/* Landing page loaded eagerly for fast first paint */}
-              <Route path="/" element={<LandingPageV4 />} />
+              <Route path="/" element={<LandingPageMCP2 />} />
 
               {/* Lazy loaded pages */}
               <Route path="/lp-v1" element={<LandingPage />} />
               <Route path="/lp-v2" element={<LandingPageV2 />} />
               <Route path="/lp-v3" element={<LandingPageV3 />} />
+              <Route path="/lp-v4" element={<LandingPageV4 />} />
               <Route path="/mcp" element={<LandingPageMCP />} />
-              <Route path="/mcp2" element={<LandingPageMCP2 />} />
               <Route path="/termos" element={<TermsOfService />} />
               <Route path="/privacidade" element={<PrivacyPolicy />} />
               <Route path="/exclusao-dados" element={<DataDeletion />} />

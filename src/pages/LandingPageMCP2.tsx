@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Logo } from '@/components/Logo';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Bot,
   BarChart3,
@@ -21,6 +22,8 @@ import { useTracking } from '@/hooks/useTracking';
 
 // Header Section
 const Header = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="w-full max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -38,11 +41,19 @@ const Header = () => {
         </nav>
 
         <div className="flex-1 flex justify-end">
-          <Link to="/login">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              Get Started
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/dashboard">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/login">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
