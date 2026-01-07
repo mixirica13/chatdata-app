@@ -42,7 +42,7 @@ const ConnectMeta = () => {
       // Safety timeout: if saving takes more than 30 seconds, show error
       const safetyTimeout = setTimeout(() => {
         console.error('Connection timeout - operation took too long');
-        setConnectionError('A conexão demorou muito. Por favor, tente novamente.');
+        setConnectionError('Connection took too long. Please try again.');
         setIsSaving(false);
         hasProcessedToken.current = false;
       }, 30000);
@@ -69,8 +69,8 @@ const ConnectMeta = () => {
             error_type: exchangeError.message || 'token_exchange_error',
           });
 
-          setConnectionError(exchangeError.message || 'Erro ao trocar token');
-          toast.error('Erro ao salvar conexão. Tente novamente.');
+          setConnectionError(exchangeError.message || 'Error exchanging token');
+          toast.error('Error saving connection. Please try again.');
           setIsSaving(false);
           return;
         }
@@ -84,7 +84,7 @@ const ConnectMeta = () => {
           permissions_granted: permissions,
         });
 
-        toast.success('Meta Ads conectado com sucesso!');
+        toast.success('Meta Ads connected successfully!');
 
         // Navigate immediately using window.location for iOS Safari compatibility
         window.location.href = '/dashboard';
@@ -110,8 +110,8 @@ const ConnectMeta = () => {
           error_type: 'unexpected_error',
         });
 
-        setConnectionError('Erro inesperado ao salvar conexão');
-        toast.error('Erro ao salvar conexão. Tente novamente.');
+        setConnectionError('Unexpected error saving connection');
+        toast.error('Error saving connection. Please try again.');
         setIsSaving(false);
       }
     };
@@ -137,7 +137,7 @@ const ConnectMeta = () => {
         error_type: 'login_error',
       });
 
-      toast.error('Erro ao conectar com Meta');
+      toast.error('Error connecting to Meta');
     }
   };
 
@@ -150,7 +150,7 @@ const ConnectMeta = () => {
           onClick={() => navigate('/dashboard')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          Back
         </Button>
 
         <Card>
@@ -162,9 +162,9 @@ const ConnectMeta = () => {
                 className="w-20 h-20"
               />
             </div>
-            <CardTitle className="text-2xl font-bold">Conectar Meta Ads</CardTitle>
+            <CardTitle className="text-2xl font-bold">Connect Meta Ads</CardTitle>
             <CardDescription>
-              Conecte suas contas de anúncios para começar a receber insights
+              Connect your ad accounts to start receiving insights
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -172,7 +172,7 @@ const ConnectMeta = () => {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Carregando Facebook SDK...
+                  Loading Facebook SDK...
                 </AlertDescription>
               </Alert>
             )}
@@ -183,40 +183,40 @@ const ConnectMeta = () => {
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      {connectionError}. Clique em "Conectar com Meta" para tentar novamente.
+                      {connectionError}. Click "Connect with Facebook" to try again.
                     </AlertDescription>
                   </Alert>
                 )}
 
                 <div className="bg-muted p-4 rounded-lg space-y-3">
-                  <p className="font-medium">Permissões necessárias:</p>
+                  <p className="font-medium">Required permissions:</p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      Gerenciar e ler campanhas e anúncios
+                      Manage and read campaigns and ads
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      Acessar métricas de performance (impressões, cliques, conversões)
+                      Access performance metrics (impressions, clicks, conversions)
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      Ver informações de públicos e segmentações
+                      View audience and targeting information
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      Acessar relatórios de orçamento e gastos
+                      Access budget and spending reports
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                      Gerenciar Business Manager
+                      Manage Business Manager
                     </li>
                   </ul>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                   <p className="text-sm text-blue-900">
-                    <strong>Segurança:</strong> Seus dados são criptografados e nunca serão compartilhados com terceiros. Você pode revogar o acesso a qualquer momento.
+                    <strong>Security:</strong> Your data is encrypted and will never be shared with third parties. You can revoke access at any time.
                   </p>
                 </div>
 
@@ -232,7 +232,7 @@ const ConnectMeta = () => {
                     ) : (
                       <>
                         <Facebook className="w-5 h-5 mr-2" />
-                        {connectionError ? 'Tentar Novamente' : 'Conectar com Facebook'}
+                        {connectionError ? 'Try Again' : 'Connect with Facebook'}
                       </>
                     )}
                   </Button>
@@ -242,12 +242,12 @@ const ConnectMeta = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-4 rounded-lg">
                   <CheckCircle2 className="w-5 h-5" />
-                  <span className="font-semibold">Conectando sua conta...</span>
+                  <span className="font-semibold">Connecting your account...</span>
                 </div>
 
                 <div className="flex justify-center py-8">
                   <LoadingSpinner size="lg" />
-                  <p className="ml-3 text-muted-foreground">Salvando credenciais e configurando acesso...</p>
+                  <p className="ml-3 text-muted-foreground">Saving credentials and configuring access...</p>
                 </div>
               </div>
             )}
