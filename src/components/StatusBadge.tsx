@@ -10,19 +10,19 @@ export const StatusBadge = ({ status, label }: StatusBadgeProps) => {
   const configs = {
     connected: {
       icon: CheckCircle2,
-      text: label || 'Conectado',
+      text: label || 'Connected',
       variant: 'default' as const,
       className: 'bg-green-500 hover:bg-green-600 text-white',
     },
     disconnected: {
       icon: XCircle,
-      text: label || 'Desconectado',
+      text: label || 'Disconnected',
       variant: 'destructive' as const,
       className: 'bg-red-500 hover:bg-red-600 text-white',
     },
     warning: {
       icon: AlertCircle,
-      text: label || 'Atenção',
+      text: label || 'Warning',
       variant: 'secondary' as const,
       className: 'bg-yellow-500 hover:bg-yellow-600 text-white',
     },
