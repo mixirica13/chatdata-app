@@ -113,8 +113,8 @@ const App = () => {
               <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
               </Routes>
-              {/* Overlay do Onboarding - renderizado globalmente */}
-              <OnboardingOverlay />
+              {/* Overlay do Onboarding - desativado */}
+              {/* <OnboardingOverlay /> */}
             </Suspense>
           </BrowserRouter>
         </OnboardingProvider>

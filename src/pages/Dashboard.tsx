@@ -50,27 +50,27 @@ const Dashboard = () => {
     trackEvent('dashboard_viewed');
   }, [trackPageView, trackEvent]);
 
-  // Inicia o onboarding automaticamente para novos usuários
-  useEffect(() => {
-    const startOnboarding = async () => {
-      // Se onboarding não foi iniciado ainda (step 0) e não está concluído
-      if (onboardingStep === 0 && !onboardingCompleted) {
-        // Se já conectou Meta, pula para passo 2
-        if (metaConnected) {
-          if (whatsappConnected) {
-            // Já conectou ambos, não precisa de onboarding
-            return;
-          }
-          await updateOnboardingStep(2);
-        } else {
-          // Começa do passo 1
-          await updateOnboardingStep(1);
-        }
-      }
-    };
+  // Onboarding desativado
+  // useEffect(() => {
+  //   const startOnboarding = async () => {
+  //     // Se onboarding não foi iniciado ainda (step 0) e não está concluído
+  //     if (onboardingStep === 0 && !onboardingCompleted) {
+  //       // Se já conectou Meta, pula para passo 2
+  //       if (metaConnected) {
+  //         if (whatsappConnected) {
+  //           // Já conectou ambos, não precisa de onboarding
+  //           return;
+  //         }
+  //         await updateOnboardingStep(2);
+  //       } else {
+  //         // Começa do passo 1
+  //         await updateOnboardingStep(1);
+  //       }
+  //     }
+  //   };
 
-    startOnboarding();
-  }, [onboardingStep, onboardingCompleted, metaConnected, whatsappConnected, updateOnboardingStep]);
+  //   startOnboarding();
+  // }, [onboardingStep, onboardingCompleted, metaConnected, whatsappConnected, updateOnboardingStep]);
 
   // Verifica limite de pre-trial ao carregar
   useEffect(() => {
@@ -177,7 +177,8 @@ const Dashboard = () => {
             </div>
           </LiquidGlass>
 
-          {/* WhatsApp Section - data attribute para onboarding */}
+          {/* WhatsApp Section - Hidden */}
+          {/*
           <>
               <div data-onboarding-target="whatsapp">
                 <LiquidGlass className="p-1">
@@ -192,7 +193,6 @@ const Dashboard = () => {
                 </LiquidGlass>
               </div>
 
-              {/* Box do Agente de IA */}
               <LiquidGlass className="p-1">
                 <div className="bg-gradient-to-br from-[#46CCC6]/10 to-[#46CCC6]/5 backdrop-blur-sm rounded-2xl p-6 border border-[#46CCC6]/20">
                   <div className="flex items-center gap-4 mb-4">
@@ -219,6 +219,7 @@ const Dashboard = () => {
                 </div>
               </LiquidGlass>
             </>
+          */}
         </div>
       </div>
 
