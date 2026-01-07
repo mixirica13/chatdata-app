@@ -17,7 +17,7 @@ import { Mail, ArrowLeft, CheckCircle2, ExternalLink } from 'lucide-react';
 import { openEmailProvider, getEmailProviderName } from '@/utils/emailProvider';
 
 const emailSchema = z.object({
-  email: z.string().email('Email inválido').trim(),
+  email: z.string().email('Invalid email').trim(),
 });
 
 type EmailForm = z.infer<typeof emailSchema>;
@@ -93,7 +93,7 @@ const Login = () => {
       trackEvent('magic_link_sent', { email_domain: data.email.split('@')[1] });
     } catch (error: any) {
       console.error('Magic link error:', error);
-      toast.error(error.message || 'Erro ao enviar link. Tente novamente.');
+      toast.error(error.message || 'Error sending link. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -105,10 +105,10 @@ const Login = () => {
     setIsResending(true);
     try {
       await sendMagicLink(sentEmail);
-      toast.success('Link reenviado! Verifique sua caixa de entrada.');
+      toast.success('Link resent! Check your inbox.');
       trackEvent('magic_link_resent');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao reenviar link. Tente novamente.');
+      toast.error(error.message || 'Error resending link. Please try again.');
     } finally {
       setIsResending(false);
     }
@@ -120,7 +120,7 @@ const Login = () => {
       trackEvent('login_google_started');
       await loginWithGoogle();
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer login com Google.');
+      toast.error(error.message || 'Error logging in with Google.');
       setIsGoogleLoading(false);
     }
   };
@@ -141,17 +141,17 @@ const Login = () => {
                 <Mail className="w-8 h-8 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Verifique seu email</CardTitle>
+            <CardTitle className="text-2xl font-bold text-white">Check your email</CardTitle>
             <CardDescription className="text-white/60">
-              Enviamos um link de acesso para
+              We sent an access link to
             </CardDescription>
             <p className="text-primary font-medium">{sentEmail}</p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-white/5 rounded-lg p-4 text-center">
               <p className="text-sm text-white/70">
-                Clique no link enviado para seu email para acessar sua conta.
-                O link expira em 1 hora.
+                Click on the link sent to your email to access your account.
+                The link expires in 1 hour.
               </p>
             </div>
 
@@ -161,7 +161,7 @@ const Login = () => {
                 onClick={() => openEmailProvider(sentEmail)}
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Abrir {getEmailProviderName(sentEmail)}
+                Open {getEmailProviderName(sentEmail)}
               </Button>
 
               <Button
@@ -175,7 +175,7 @@ const Login = () => {
                 ) : (
                   <>
                     <Mail className="mr-2 h-4 w-4" />
-                    Reenviar link
+                    Resend link
                   </>
                 )}
               </Button>
@@ -186,12 +186,12 @@ const Login = () => {
                 onClick={handleBack}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar e usar outro email
+                Go back and use another email
               </Button>
             </div>
 
             <p className="text-xs text-white/40 text-center">
-              Não recebeu o email? Verifique sua pasta de spam ou lixo eletrônico.
+              Didn't receive the email? Check your spam or junk folder.
             </p>
           </CardContent>
         </Card>
@@ -207,9 +207,9 @@ const Login = () => {
           <div className="flex justify-center mb-6">
             <Logo className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Bem-vindo</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Welcome</CardTitle>
           <CardDescription className="text-white/60">
-            Entre para acessar seus insights de Meta Ads
+            Sign in to access your Meta Ads insights
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -244,7 +244,7 @@ const Login = () => {
                   />
                   <path fill="none" d="M1 1h22v22H1z" />
                 </svg>
-                Continuar com Google
+                Continue with Google
               </>
             )}
           </Button>
@@ -255,7 +255,7 @@ const Login = () => {
               <span className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-white/40">ou continue com email</span>
+              <span className="bg-card px-2 text-white/40">or continue with email</span>
             </div>
           </div>
 
@@ -281,15 +281,15 @@ const Login = () => {
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold h-12"
               disabled={isLoading || isGoogleLoading}
             >
-              {isLoading ? <LoadingSpinner size="sm" /> : 'Continuar com email'}
+              {isLoading ? <LoadingSpinner size="sm" /> : 'Continue with email'}
             </Button>
           </form>
 
           <p className="text-xs text-white/40 text-center">
-            Ao continuar, você concorda com nossos{' '}
-            <a href="/terms" className="text-primary hover:underline">Termos de Serviço</a>
-            {' '}e{' '}
-            <a href="/privacy" className="text-primary hover:underline">Política de Privacidade</a>.
+            By continuing, you agree to our{' '}
+            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+            {' '}and{' '}
+            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
           </p>
         </CardContent>
       </Card>

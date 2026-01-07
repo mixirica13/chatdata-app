@@ -44,7 +44,7 @@ const Onboarding = () => {
 
   const handleSaveName = async () => {
     if (!name.trim()) {
-      toast.error('Por favor, insira seu nome');
+      toast.error('Please enter your name');
       return;
     }
 
@@ -68,7 +68,7 @@ const Onboarding = () => {
       setCurrentStep(1);
     } catch (error: any) {
       console.error('Error saving name:', error);
-      toast.error('Erro ao salvar nome. Tente novamente.');
+      toast.error('Error saving name. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -78,7 +78,7 @@ const Onboarding = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      toast.success('Configuração concluída! Bem-vindo ao ChatData.');
+      toast.success('Setup complete! Welcome to ChatData.');
       navigate('/custom-dashboard');
     }
   };
@@ -101,7 +101,7 @@ const Onboarding = () => {
         <div className="mb-8">
           <Progress value={progress} className="h-2" />
           <p className="text-sm text-muted-foreground mt-2 text-center">
-            Passo {currentStep + 1} de {totalSteps}
+            Step {currentStep + 1} of {totalSteps}
           </p>
         </div>
 
@@ -115,17 +115,17 @@ const Onboarding = () => {
                     <User className="w-12 h-12 text-primary-foreground" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">Como podemos te chamar?</CardTitle>
+                <CardTitle className="text-2xl font-bold">What should we call you?</CardTitle>
                 <CardDescription className="text-base mt-2">
-                  Nos diga seu nome para personalizarmos sua experiência
+                  Tell us your name to personalize your experience
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Seu nome</Label>
+                  <Label htmlFor="name">Your name</Label>
                   <Input
                     id="name"
-                    placeholder="Ex: João Silva"
+                    placeholder="Ex: John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="text-lg h-12"
@@ -143,10 +143,10 @@ const Onboarding = () => {
                   variant="ghost"
                   onClick={handleSkip}
                 >
-                  Pular por agora
+                  Skip for now
                 </Button>
                 <Button onClick={handleSaveName} disabled={isSaving || !name.trim()}>
-                  {isSaving ? <LoadingSpinner size="sm" /> : 'Continuar'}
+                  {isSaving ? <LoadingSpinner size="sm" /> : 'Continue'}
                 </Button>
               </div>
             </>
@@ -204,7 +204,7 @@ const Onboarding = () => {
                   variant="ghost"
                   onClick={handleSkip}
                 >
-                  Pular por agora
+                  Skip for now
                 </Button>
                 <div className="flex gap-2">
                   {!hasExistingName && (
@@ -230,31 +230,31 @@ const Onboarding = () => {
                     <Facebook className="w-12 h-12 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">Conectar Meta Ads</CardTitle>
+                <CardTitle className="text-2xl font-bold">Connect Meta Ads</CardTitle>
                 <CardDescription className="text-base mt-2">
-                  Precisamos acessar suas contas de anúncios para fornecer insights
+                  We need to access your ad accounts to provide insights
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="bg-muted p-4 rounded-lg space-y-3">
-                  <p className="font-medium">Permissões necessárias:</p>
+                  <p className="font-medium">Required permissions:</p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Ler dados de campanhas e anúncios
+                      Read campaign and ad data
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Acessar métricas de performance
+                      Access performance metrics
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Ver informações de públicos
+                      View audience information
                     </li>
                   </ul>
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
-                  Seus dados são seguros e nunca serão compartilhados com terceiros
+                  Your data is secure and will never be shared with third parties
                 </p>
               </CardContent>
               <div className="flex justify-between p-6 border-t">
@@ -262,14 +262,14 @@ const Onboarding = () => {
                   variant="ghost"
                   onClick={handleSkip}
                 >
-                  Pular por agora
+                  Skip for now
                 </Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handlePrevious}>
-                    Anterior
+                    Previous
                   </Button>
                   <Button onClick={handleNext}>
-                    Próximo
+                    Next
                   </Button>
                 </div>
               </div>
@@ -285,18 +285,18 @@ const Onboarding = () => {
                     <Bot className="w-12 h-12 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">Integração MCP</CardTitle>
+                <CardTitle className="text-2xl font-bold">MCP Integration</CardTitle>
                 <CardDescription className="text-base mt-2">
-                  Conecte suas ferramentas de IA favoritas para análises avançadas
+                  Connect your favorite AI tools for advanced analytics
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="bg-muted p-4 rounded-lg space-y-3">
-                  <p className="font-medium">Integrações disponíveis:</p>
+                  <p className="font-medium">Available integrations:</p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Claude Desktop e Claude.ai
+                      Claude Desktop and Claude.ai
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -304,12 +304,12 @@ const Onboarding = () => {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Outras LLMs compatíveis com MCP
+                      Other MCP-compatible LLMs
                     </li>
                   </ul>
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
-                  Consulte seus dados de Meta Ads diretamente na sua IA preferida
+                  Query your Meta Ads data directly in your preferred AI
                 </p>
               </CardContent>
               <div className="flex justify-between p-6 border-t">
@@ -317,14 +317,14 @@ const Onboarding = () => {
                   variant="ghost"
                   onClick={handleSkip}
                 >
-                  Pular por agora
+                  Skip for now
                 </Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handlePrevious}>
-                    Anterior
+                    Previous
                   </Button>
                   <Button onClick={handleNext}>
-                    Próximo
+                    Next
                   </Button>
                 </div>
               </div>
@@ -340,31 +340,31 @@ const Onboarding = () => {
                     <LayoutDashboard className="w-12 h-12 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold">Dashboard Customizável</CardTitle>
+                <CardTitle className="text-2xl font-bold">Customizable Dashboard</CardTitle>
                 <CardDescription className="text-base mt-2">
-                  Visualize suas métricas do jeito que você preferir
+                  Visualize your metrics the way you prefer
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="bg-muted p-4 rounded-lg space-y-3">
-                  <p className="font-medium">Recursos do Dashboard:</p>
+                  <p className="font-medium">Dashboard features:</p>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Arraste e solte widgets
+                      Drag and drop widgets
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Escolha suas métricas favoritas
+                      Choose your favorite metrics
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      Visualização em tempo real
+                      Real-time visualization
                     </li>
                   </ul>
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
-                  Personalize seu painel para focar no que realmente importa
+                  Customize your dashboard to focus on what really matters
                 </p>
               </CardContent>
               <div className="flex justify-between p-6 border-t">
@@ -372,14 +372,14 @@ const Onboarding = () => {
                   variant="ghost"
                   onClick={handleSkip}
                 >
-                  Pular por agora
+                  Skip for now
                 </Button>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handlePrevious}>
                     Anterior
                   </Button>
                   <Button onClick={handleNext}>
-                    Concluir
+                    Complete
                   </Button>
                 </div>
               </div>

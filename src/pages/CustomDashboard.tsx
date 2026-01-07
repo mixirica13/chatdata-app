@@ -8,7 +8,7 @@ import { DashboardGrid, DateRangePicker, AccountSelector } from '@/components/cu
 import { BottomNav } from '@/components/BottomNav';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
-import { Loader2, Key, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Loader2, Key, AlertCircle, RefreshCw, ArrowLeft, Facebook } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Dashboard } from '@/types/dashboard';
 
@@ -24,14 +24,6 @@ const CustomDashboard = () => {
   // Fetch dashboard and accounts
   const { data: defaultDashboard, isLoading: isLoadingDashboard, refetch: refetchDashboard } = useDefaultDashboard();
   const { data: accounts, isLoading: isLoadingAccounts } = useActiveAdAccounts();
-
-  // Redirect if not connected to Meta
-  useEffect(() => {
-    if (!metaConnected) {
-      toast.error('Conecte sua conta Meta Ads primeiro');
-      navigate('/dashboard');
-    }
-  }, [metaConnected, navigate]);
 
   // Set current dashboard when loaded
   useEffect(() => {
@@ -51,8 +43,38 @@ const CustomDashboard = () => {
 
   const handleRefresh = () => {
     refetchDashboard();
-    toast.success('Dashboard atualizado!');
+    toast.success('Dashboard updated!');
   };
+
+  // Not connected to Meta state
+  if (!metaConnected) {
+    return (
+      <div className="min-h-screen w-full bg-black flex flex-col p-6 pb-32">
+        <div className="w-full flex items-center justify-center pt-0 pb-4">
+          <Logo className="h-12 w-auto" />
+        </div>
+
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#46CCC6]/10">
+              <Facebook className="h-8 w-8 text-[#46CCC6]" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">CONNECT META ADS</h2>
+            <p className="max-w-md text-gray-400">
+              To view your custom dashboard, connect your Meta Ads account first.
+            </p>
+            <Button
+              onClick={() => navigate('/connect/meta')}
+              className="bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90"
+            >
+              Connect Meta Ads
+            </Button>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // Loading state
   if (isLoading) {
@@ -61,7 +83,7 @@ const CustomDashboard = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-[#46CCC6] mx-auto mb-4" />
-            <p className="text-gray-400">Carregando dashboard...</p>
+            <p className="text-gray-400">Loading dashboard...</p>
           </div>
         </div>
         <BottomNav />
@@ -91,7 +113,7 @@ const CustomDashboard = () => {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#46CCC6]/10">
               <Key className="h-8 w-8 text-[#46CCC6]" />
             </div>
-            <h2 className="text-2xl font-bold text-white">CONFIGURE SEU TOKEN</h2>
+            <h2 className="text-2xl font-bold text-white">CONFIGURE YOUR TOKEN</h2>
             <p className="max-w-md text-gray-400">
               {tokenError}
             </p>
@@ -99,7 +121,7 @@ const CustomDashboard = () => {
               onClick={() => navigate('/connect/meta')}
               className="bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90"
             >
-              Reconectar Meta Ads
+              Reconnect Meta Ads
             </Button>
           </div>
         </div>
@@ -130,10 +152,10 @@ const CustomDashboard = () => {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/10">
               <AlertCircle className="h-8 w-8 text-yellow-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white">SELECIONE SUAS CONTAS</h2>
+            <h2 className="text-2xl font-bold text-white">SELECT YOUR ACCOUNTS</h2>
             <p className="max-w-md text-gray-400">
-              Nenhuma conta de anúncio selecionada. Use o seletor de contas para escolher
-              quais contas você deseja monitorar.
+              No ad accounts selected. Use the account selector to choose
+              which accounts you want to monitor.
             </p>
             <AccountSelector />
           </div>

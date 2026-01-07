@@ -29,8 +29,8 @@ export const Header = () => {
   return (
     <header className="h-16 border-b bg-card px-6 flex items-center justify-between">
       <div>
-        <h2 className="text-xl font-semibold">Bem-vindo de volta, {profile?.name?.split(' ')[0] || user?.email?.split('@')[0]}!</h2>
-        <p className="text-sm text-muted-foreground">Aqui está o resumo das suas campanhas</p>
+        <h2 className="text-xl font-semibold">Welcome back, {profile?.name?.split(' ')[0] || user?.email?.split('@')[0]}!</h2>
+        <p className="text-sm text-muted-foreground">Here's your campaign summary</p>
       </div>
       
       <DropdownMenu>
@@ -45,14 +45,14 @@ export const Header = () => {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
             <div className="flex flex-col">
-              <span className="font-semibold">{profile?.name || 'Usuário'}</span>
+              <span className="font-semibold">{profile?.name || 'User'}</span>
               <span className="text-xs text-muted-foreground">{user?.email}</span>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => navigate('/settings')}>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Configurações</span>
+            <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={(e) => {
@@ -61,7 +61,7 @@ export const Header = () => {
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Sair</span>
+            <span>Sign out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

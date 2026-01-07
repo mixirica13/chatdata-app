@@ -29,12 +29,12 @@ const Settings = () => {
   const handleSaveProfile = async () => {
     try {
       if (!user) {
-        toast.error('Usuário não autenticado');
+        toast.error('User not authenticated');
         return;
       }
 
       if (!name.trim()) {
-        toast.error('Nome não pode estar vazio');
+        toast.error('Name cannot be empty');
         return;
       }
 
@@ -55,11 +55,11 @@ const Settings = () => {
       // Refresh profile data
       await initialize();
 
-      toast.success('Perfil atualizado com sucesso!');
+      toast.success('Profile updated successfully!');
       setIsEditingName(false);
     } catch (error: any) {
       console.error('Erro ao salvar:', error);
-      toast.error(error.message || 'Erro ao atualizar perfil');
+      toast.error(error.message || 'Error updating profile');
     } finally {
       setIsSaving(false);
     }
@@ -73,13 +73,13 @@ const Settings = () => {
   const handleSaveWhatsapp = async () => {
     try {
       if (!user) {
-        toast.error('Usuário não autenticado');
+        toast.error('User not authenticated');
         return;
       }
 
       // Validate phone number if provided
       if (whatsapp && !isValidPhoneNumber(whatsapp)) {
-        toast.error('Número de WhatsApp inválido');
+        toast.error('Invalid WhatsApp number');
         return;
       }
 
@@ -93,11 +93,11 @@ const Settings = () => {
       if (error) throw error;
 
       await initialize();
-      toast.success('WhatsApp atualizado com sucesso!');
+      toast.success('WhatsApp updated successfully!');
       setIsEditingWhatsapp(false);
     } catch (error: any) {
       console.error('Erro ao salvar WhatsApp:', error);
-      toast.error(error.message || 'Erro ao atualizar WhatsApp');
+      toast.error(error.message || 'Error updating WhatsApp');
     } finally {
       setIsSavingWhatsapp(false);
     }
@@ -111,10 +111,10 @@ const Settings = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success('Logout realizado com sucesso!');
+      toast.success('Logged out successfully!');
       navigate('/login');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer logout');
+      toast.error(error.message || 'Error logging out');
     }
   };
 
@@ -129,9 +129,9 @@ const Settings = () => {
         <LiquidGlass>
           <Card className="bg-transparent border-0">
             <CardHeader>
-              <CardTitle className="text-white">Perfil</CardTitle>
+              <CardTitle className="text-white">Profile</CardTitle>
               <CardDescription className="text-white/60">
-                Suas informações pessoais
+                Your personal information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -144,7 +144,7 @@ const Settings = () => {
                 </Avatar>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-white/80">Nome completo</Label>
+                <Label htmlFor="name" className="text-white/80">Full name</Label>
                 <div className="flex gap-2">
                   <Input
                     id="name"
@@ -198,12 +198,12 @@ const Settings = () => {
                   disabled
                   className="bg-white/5 border-white/10 text-white/60 placeholder:text-white/40 cursor-not-allowed"
                 />
-                <p className="text-xs text-white/40">O email não pode ser alterado</p>
+                <p className="text-xs text-white/40">Email cannot be changed</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="whatsapp" className="text-white/80 flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  WhatsApp (opcional)
+                  WhatsApp (optional)
                 </Label>
                 <div className="flex gap-2">
                   {isEditingWhatsapp ? (
@@ -240,7 +240,7 @@ const Settings = () => {
                     <>
                       <Input
                         id="whatsapp-display"
-                        value={whatsapp || 'Não informado'}
+                        value={whatsapp || 'Not provided'}
                         disabled
                         className="bg-white/5 border-white/10 text-white/60 placeholder:text-white/40 cursor-not-allowed"
                       />
@@ -255,7 +255,7 @@ const Settings = () => {
                     </>
                   )}
                 </div>
-                <p className="text-xs text-white/40">Receba insights das suas campanhas diretamente no WhatsApp</p>
+                <p className="text-xs text-white/40">Receive campaign insights directly on WhatsApp</p>
               </div>
             </CardContent>
           </Card>
@@ -264,9 +264,9 @@ const Settings = () => {
         <LiquidGlass>
           <Card className="bg-transparent border-0">
             <CardHeader>
-              <CardTitle className="text-white">Conta</CardTitle>
+              <CardTitle className="text-white">Account</CardTitle>
               <CardDescription className="text-white/60">
-                Gerencie sua conta
+                Manage your account
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -276,7 +276,7 @@ const Settings = () => {
                 className="w-full"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Sair da conta
+                Sign out
               </Button>
             </CardContent>
           </Card>

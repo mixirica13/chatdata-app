@@ -64,7 +64,7 @@ const MetaAdsDashboard = () => {
   // Redirect if not connected
   useEffect(() => {
     if (!metaConnected) {
-      toast.error('Conecte sua conta Meta Ads primeiro');
+      toast.error('Conecte sua conta Meta Ads primeiro', { duration: 3000 });
       navigate('/dashboard');
     }
   }, [metaConnected, navigate]);

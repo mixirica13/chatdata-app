@@ -25,7 +25,7 @@ const ConfirmEmail = () => {
 
   const handleResendEmail = async () => {
     if (!email) {
-      toast.error('Email não encontrado. Por favor, faça o cadastro novamente.');
+      toast.error('Email not found. Please sign up again.');
       navigate('/register');
       return;
     }
@@ -42,9 +42,9 @@ const ConfirmEmail = () => {
 
       if (error) throw error;
 
-      toast.success('Email de confirmação reenviado! Verifique sua caixa de entrada.');
+      toast.success('Confirmation email resent! Check your inbox.');
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao reenviar email. Tente novamente.');
+      toast.error(error.message || 'Error resending email. Please try again.');
     } finally {
       setIsResending(false);
     }
@@ -59,34 +59,34 @@ const ConfirmEmail = () => {
               <Mail className="w-12 h-12 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Confirme seu email</CardTitle>
+          <CardTitle className="text-2xl font-bold">Confirm your email</CardTitle>
           <CardDescription>
-            Enviamos um link de confirmação para seu email
+            We sent a confirmation link to your email
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-muted p-4 rounded-lg">
-            <p className="text-sm font-medium mb-2">Email enviado para:</p>
+            <p className="text-sm font-medium mb-2">Email sent to:</p>
             <p className="text-sm text-muted-foreground break-all">{email}</p>
           </div>
 
           <div className="space-y-3 bg-accent/50 p-4 rounded-lg">
             <p className="font-medium text-sm flex items-center gap-2 text-white">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
-              Próximos passos:
+              Next steps:
             </p>
             <ol className="space-y-2 text-sm ml-6">
               <li className="flex gap-2">
                 <span className="font-semibold text-white">1.</span>
-                <span className="text-white">Abra seu email e procure por uma mensagem do ChatData</span>
+                <span className="text-white">Open your email and look for a message from ChatData</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-semibold text-white">2.</span>
-                <span className="text-white">Clique no link de confirmação</span>
+                <span className="text-white">Click on the confirmation link</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-semibold text-white">3.</span>
-                <span className="text-white">Você será redirecionado para fazer login</span>
+                <span className="text-white">You will be redirected to sign in</span>
               </li>
             </ol>
           </div>
@@ -98,7 +98,7 @@ const ConfirmEmail = () => {
               disabled={!email}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Abrir {getEmailProviderName(email)}
+              Open {getEmailProviderName(email)}
             </Button>
 
             <Button
@@ -110,12 +110,12 @@ const ConfirmEmail = () => {
               {isResending ? (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Reenviando...
+                  Resending...
                 </>
               ) : (
                 <>
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Reenviar email
+                  Resend email
                 </>
               )}
             </Button>
@@ -126,13 +126,13 @@ const ConfirmEmail = () => {
                 variant="secondary"
                 className="w-full"
               >
-                Ir para Login
+                Go to Login
               </Button>
             )}
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            Não recebeu o email? Verifique sua pasta de spam ou lixo eletrônico.
+            Didn't receive the email? Check your spam or junk folder.
           </p>
         </CardContent>
       </Card>

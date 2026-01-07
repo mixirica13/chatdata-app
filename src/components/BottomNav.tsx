@@ -14,17 +14,17 @@ export const BottomNav = () => {
     },
     {
       icon: BarChart3,
-      label: 'Métricas',
-      path: '/meta-ads',
+      label: 'Dashboard',
+      path: '/custom-dashboard',
     },
     {
       icon: CreditCard,
-      label: 'Assinatura',
+      label: 'Subscription',
       path: '/subscription',
     },
     {
       icon: Settings,
-      label: 'Config.',
+      label: 'Settings',
       path: '/settings',
     },
   ];

@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { translateAuthError } from '@/utils/authErrors';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Email inválido').trim(),
+  email: z.string().email('Invalid email').trim(),
 });
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
@@ -59,9 +59,9 @@ const ForgotPassword = () => {
             <div className="flex justify-center mb-6">
               <Logo className="h-16 w-auto" />
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Email Enviado</CardTitle>
+            <CardTitle className="text-2xl font-bold text-white">Email Sent</CardTitle>
             <CardDescription className="text-white/60">
-              Verifique sua caixa de entrada
+              Check your inbox
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -82,17 +82,17 @@ const ForgotPassword = () => {
                 </svg>
               </div>
               <p className="text-white/80">
-                Enviamos um link de recuperação para <strong className="text-white">{getValues('email')}</strong>
+                We sent a recovery link to <strong className="text-white">{getValues('email')}</strong>
               </p>
               <p className="text-sm text-white/60">
-                Clique no link no email para redefinir sua senha. O link expira em 1 hora.
+                Click on the link in the email to reset your password. The link expires in 1 hour.
               </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
             <Link to="/login" className="w-full">
               <Button variant="outline" className="w-full border-white/10 text-white hover:bg-white/5">
-                Voltar para Login
+                Back to Login
               </Button>
             </Link>
           </CardFooter>
@@ -108,9 +108,9 @@ const ForgotPassword = () => {
           <div className="flex justify-center mb-6">
             <Logo className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Esqueceu sua senha?</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Forgot your password?</CardTitle>
           <CardDescription className="text-white/60">
-            Digite seu email para receber um link de recuperação
+            Enter your email to receive a recovery link
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,13 +138,13 @@ const ForgotPassword = () => {
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold"
               disabled={isLoading}
             >
-              {isLoading ? <LoadingSpinner size="sm" /> : 'Enviar Link de Recuperação'}
+              {isLoading ? <LoadingSpinner size="sm" /> : 'Send Recovery Link'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <Link to="/login" className="text-sm text-white/60 hover:text-white text-center">
-            ← Voltar para Login
+            ← Back to Login
           </Link>
         </CardFooter>
       </Card>

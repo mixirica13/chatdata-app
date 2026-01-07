@@ -17,21 +17,21 @@ import { useTracking } from '@/hooks/useTracking';
 import { translateAuthError } from '@/utils/authErrors';
 
 const registerSchema = z.object({
-  name: z.string().trim().min(2, 'Nome muito curto').max(100, 'Nome muito longo'),
-  email: z.string().email('Email inválido').trim().max(255, 'Email muito longo'),
+  name: z.string().trim().min(2, 'Name too short').max(100, 'Name too long'),
+  email: z.string().email('Invalid email').trim().max(255, 'Email too long'),
   whatsapp: z.string()
-    .min(1, 'WhatsApp é obrigatório')
+    .min(1, 'WhatsApp is required')
     .refine((value) => {
       try {
         return isValidPhoneNumber(value);
       } catch {
         return false;
       }
-    }, 'Número de telefone inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(100, 'Senha muito longa'),
+    }, 'Invalid phone number'),
+  password: z.string().min(6, 'Password must have at least 6 characters').max(100, 'Password too long'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'As senhas não coincidem',
+  message: 'Passwords do not match',
   path: ['confirmPassword'],
 });
 
@@ -114,18 +114,18 @@ const Register = () => {
           <div className="flex justify-center mb-6">
             <Logo className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Criar conta</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Create account</CardTitle>
           <CardDescription className="text-white/60">
-            Cadastre-se para começar a receber insights via WhatsApp
+            Sign up to start receiving insights via WhatsApp
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white/80">Nome completo</Label>
+              <Label htmlFor="name" className="text-white/80">Full name</Label>
               <Input
                 id="name"
-                placeholder="João Silva"
+                placeholder="John Doe"
                 {...register('name')}
                 disabled={isLoading}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/40 focus:bg-black focus:border-primary"
@@ -172,7 +172,7 @@ const Register = () => {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">Senha</Label>
+              <Label htmlFor="password" className="text-white/80">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -186,7 +186,7 @@ const Register = () => {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white/80">Confirmar senha</Label>
+              <Label htmlFor="confirmPassword" className="text-white/80">Confirm password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -204,7 +204,7 @@ const Register = () => {
             </div>
 
             <Button type="submit" className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold" disabled={isLoading || isGoogleLoading}>
-              {isLoading ? <LoadingSpinner size="sm" /> : 'Criar conta'}
+              {isLoading ? <LoadingSpinner size="sm" /> : 'Create account'}
             </Button>
 
             <div className="relative my-4">
@@ -212,7 +212,7 @@ const Register = () => {
                 <span className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-white/40">ou continue com</span>
+                <span className="bg-card px-2 text-white/40">or continue with</span>
               </div>
             </div>
 
@@ -246,7 +246,7 @@ const Register = () => {
                     />
                     <path fill="none" d="M1 1h22v22H1z" />
                   </svg>
-                  Cadastrar com Google
+                  Sign up with Google
                 </>
               )}
             </Button>
@@ -254,9 +254,9 @@ const Register = () => {
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <p className="text-sm text-white/60 text-center">
-            Já tem uma conta?{' '}
+            Already have an account?{' '}
             <Link to="/login" className="text-primary hover:underline font-medium">
-              Fazer login
+              Sign in
             </Link>
           </p>
         </CardFooter>

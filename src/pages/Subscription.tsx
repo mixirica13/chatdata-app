@@ -44,17 +44,17 @@ const plans: Plan[] = [
     icon: Zap,
     price: 'R$ 47',
     priceId: 'price_1SWm28A76CJavEvOTQu7kLC1',
-    description: 'Ideal para começar com IA',
+    description: 'Ideal to get started with AI',
     features: [
-      'Acesso à IA ChatData no WhatsApp',
-      'Dashboard customizável',
-      'Burn-up chart para acompanhamento',
-      'Controle de gastos detalhado',
-      'Alerta de saldo para contas pré-pagas',
-      '50 requisições/dia',
+      'Access to ChatData AI on WhatsApp',
+      'Customizable dashboard',
+      'Burn-up chart for tracking',
+      'Detailed spending control',
+      'Balance alert for prepaid accounts',
+      '50 requests/day',
     ],
     popular: false,
-    requestLimit: '50 requisições/dia',
+    requestLimit: '50 requests/day',
     visible: false,
   },
   {
@@ -63,17 +63,17 @@ const plans: Plan[] = [
     icon: TrendingUp,
     price: 'R$ 97',
     priceId: 'price_1SWlyAA76CJavEvOEXapiskH',
-    description: 'Para profissionais que buscam mais',
+    description: 'For professionals seeking more',
     features: [
-      'Acesso à IA ChatData no WhatsApp',
-      'Dashboard customizável',
-      'Burn-up chart para acompanhamento',
-      'Controle de gastos detalhado',
-      'Alerta de saldo para contas pré-pagas',
-      '100 requisições/dia',
+      'Access to ChatData AI on WhatsApp',
+      'Customizable dashboard',
+      'Burn-up chart for tracking',
+      'Detailed spending control',
+      'Balance alert for prepaid accounts',
+      '100 requests/day',
     ],
     popular: false,
-    requestLimit: '100 requisições/dia',
+    requestLimit: '100 requests/day',
     visible: false,
   },
   {
@@ -82,17 +82,17 @@ const plans: Plan[] = [
     icon: Rocket,
     price: 'R$ 197',
     priceId: 'price_1SWlxaA76CJavEvOS0FdYuNb',
-    description: 'Solução completa para agências',
+    description: 'Complete solution for agencies',
     features: [
-      'Todos os recursos do Pro',
-      'Dashboard customizável avançado',
-      'Burn-up chart detalhado',
-      'Controle completo de gastos',
-      'Alertas personalizados',
-      'Requisições ilimitadas',
+      'All Pro features',
+      'Advanced customizable dashboard',
+      'Detailed burn-up chart',
+      'Complete spending control',
+      'Custom alerts',
+      'Unlimited requests',
     ],
     popular: false,
-    requestLimit: 'Requisições ilimitadas',
+    requestLimit: 'Unlimited requests',
     visible: false,
   },
   {
@@ -101,19 +101,19 @@ const plans: Plan[] = [
     icon: BarChart3,
     price: '$10',
     priceId: 'price_1ShLvVA76CJavEvOTW5qeasM',
-    description: 'Integração MCP com Claude, ChatGPT e outras LLM\'s',
+    description: 'MCP integration with Claude, ChatGPT and other LLMs',
     features: [
-      'Acesso ao servidor MCP remoto',
-      'Integração com Claude Desktop',
-      'Integração com Claude.ai',
-      'Integração com ChatGPT',
-      'Consultas de Meta Ads via IA',
-      'Insights de campanhas em tempo real',
-      'Dashboard customizável',
-      'Requisições ilimitadas',
+      'Access to remote MCP server',
+      'Integration with Claude Desktop',
+      'Integration with Claude.ai',
+      'Integration with ChatGPT',
+      'Meta Ads queries via AI',
+      'Real-time campaign insights',
+      'Customizable dashboard',
+      'Unlimited requests',
     ],
     popular: true,
-    requestLimit: 'Requisições ilimitadas',
+    requestLimit: 'Unlimited requests',
     visible: true,
   },
 ];
@@ -174,7 +174,7 @@ const Subscription = () => {
 
     try {
       // Mostrar toast ANTES de chamar a função
-      toast.loading('Criando checkout...', { id: 'checkout' });
+      toast.loading('Creating checkout...', { id: 'checkout' });
 
       // Timeout de 15 segundos
       const timeoutPromise = new Promise((_, reject) =>
@@ -196,17 +196,17 @@ const Subscription = () => {
           plan_price: planPrice,
         });
 
-        toast.success('Redirecionando...', { id: 'checkout' });
+        toast.success('Redirecting...', { id: 'checkout' });
 
         // Redirect imediatamente
         window.location.href = data.url;
       } else {
-        toast.error('Erro: Nenhuma URL de checkout retornada', { id: 'checkout' });
+        toast.error('Error: No checkout URL returned', { id: 'checkout' });
         setIsLoading(null);
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error(error.message || 'Erro ao iniciar checkout. Tente novamente.', { id: 'checkout' });
+      toast.error(error.message || 'Error starting checkout. Please try again.', { id: 'checkout' });
       setIsLoading(null);
     }
   };
@@ -215,7 +215,7 @@ const Subscription = () => {
     setIsPortalLoading(true);
 
     try {
-      toast.loading('Abrindo portal...', { id: 'portal' });
+      toast.loading('Opening portal...', { id: 'portal' });
 
       // Timeout de 15 segundos
       const timeoutPromise = new Promise((_, reject) =>
@@ -231,12 +231,12 @@ const Subscription = () => {
         toast.success('Redirecionando...', { id: 'portal' });
         window.location.href = data.url;
       } else {
-        toast.error('Erro: Nenhuma URL do portal retornada', { id: 'portal' });
+        toast.error('Error: No portal URL returned', { id: 'portal' });
         setIsPortalLoading(false);
       }
     } catch (error: any) {
       console.error('Portal error:', error);
-      toast.error(error.message || 'Erro ao abrir portal. Tente novamente.', { id: 'portal' });
+      toast.error(error.message || 'Error opening portal. Please try again.', { id: 'portal' });
       setIsPortalLoading(false);
     }
   };
@@ -261,10 +261,10 @@ const Subscription = () => {
         setCanceledDate(periodEnd);
         setShowSuccessDialog(true);
       } else {
-        toast.error('Erro ao cancelar assinatura');
+        toast.error('Error canceling subscription');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao cancelar assinatura');
+      toast.error(error.message || 'Error canceling subscription');
     } finally {
       setIsCanceling(false);
     }
@@ -274,19 +274,19 @@ const Subscription = () => {
   const getButtonText = (planId: PlanType): string => {
     // Se não está inscrito e é o plano Basic, mostrar trial
     if (!isSubscribed && planId === 'basic') {
-      return 'Testar Grátis';
+      return 'Try Free';
     }
 
-    if (!isSubscribed) return 'Assinar Agora';
+    if (!isSubscribed) return 'Subscribe Now';
 
     const currentTier = subscriptionTier || 'free';
     const currentOrder = tierOrder[currentTier] || 0;
     const targetOrder = tierOrder[planId] || 0;
 
-    if (currentTier === planId) return 'Plano Atual';
-    if (targetOrder > currentOrder) return 'Fazer Upgrade';
-    if (targetOrder < currentOrder) return 'Fazer Downgrade';
-    return 'Trocar Plano';
+    if (currentTier === planId) return 'Current Plan';
+    if (targetOrder > currentOrder) return 'Upgrade';
+    if (targetOrder < currentOrder) return 'Downgrade';
+    return 'Switch Plan';
   };
 
   // Função para verificar se é o plano atual
@@ -319,11 +319,11 @@ const Subscription = () => {
                       Plano {subscriptionTier && plans.find(p => p.id === subscriptionTier)?.name}
                     </CardTitle>
                     <CardDescription className="text-white/60">
-                      Você tem acesso aos recursos do seu plano
+                      You have access to your plan features
                     </CardDescription>
                   </div>
                   <Badge className="bg-[#46CCC6] text-black">
-                    Ativo
+                    Active
                   </Badge>
                 </div>
               </CardHeader>
@@ -338,19 +338,19 @@ const Subscription = () => {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm text-yellow-500 font-semibold">
-                            🎁 Trial Gratuito Ativo
+                            🎁 Free Trial Active
                           </p>
                           <p className="text-sm text-white/80 mt-1">
                             {daysRemaining > 0 ? (
                               <>
-                                Você tem <span className="font-bold text-yellow-400">{daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'}</span> restantes de trial grátis!
+                                You have <span className="font-bold text-yellow-400">{daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}</span> left of free trial!
                               </>
                             ) : (
-                              'Seu trial termina hoje!'
+                              'Your trial ends today!'
                             )}
                           </p>
                           <p className="text-xs text-white/60 mt-2">
-                            Seu cartão será cobrado em <span className="font-semibold text-white/80">{new Date(subscriptionEnd).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                            Your card will be charged on <span className="font-semibold text-white/80">{new Date(subscriptionEnd).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                           </p>
                         </div>
                       </div>
@@ -362,16 +362,16 @@ const Subscription = () => {
                     <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-4">
                       <p className="text-sm text-yellow-500 font-semibold flex items-center gap-2">
                         <XCircle className="w-4 h-4" />
-                        Assinatura será cancelada
+                        Subscription will be canceled
                       </p>
                       <p className="text-sm text-yellow-500/80 mt-1">
-                        Você terá acesso até: {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
+                        You will have access until: {new Date(subscriptionEnd).toLocaleDateString('en-US')}
                       </p>
                     </div>
                   )}
                   {subscriptionEnd && !cancelAtPeriodEnd && !isTrialing && (
                     <p className="text-sm text-white/60">
-                      Renovação em: {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
+                      Renews on: {new Date(subscriptionEnd).toLocaleDateString('en-US')}
                     </p>
                   )}
                   <div className="flex flex-col gap-3">
@@ -386,7 +386,7 @@ const Subscription = () => {
                       ) : (
                         <CreditCard className="mr-2 h-4 w-4" />
                       )}
-                      Gerenciar Pagamento
+                      Manage Payment
                     </Button>
                     {!cancelAtPeriodEnd && (
                       <AlertDialog>
@@ -401,36 +401,36 @@ const Subscription = () => {
                             ) : (
                               <XCircle className="mr-2 h-4 w-4" />
                             )}
-                            Cancelar Assinatura
+                            Cancel Subscription
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent className="bg-zinc-900 border-white/10">
                           <AlertDialogHeader>
                             <AlertDialogTitle className="text-white">
-                              Tem certeza que deseja cancelar?
+                              Are you sure you want to cancel?
                             </AlertDialogTitle>
                             <AlertDialogDescription className="text-white/60">
                               {isTrialing ? (
                                 <>
-                                  Você está em trial gratuito. Se cancelar agora, você continuará tendo acesso até o final do trial ({new Date(subscriptionEnd!).toLocaleDateString('pt-BR')}) e <span className="font-semibold text-white">não será cobrado</span>.
+                                  You are on a free trial. If you cancel now, you will continue to have access until the end of the trial ({new Date(subscriptionEnd!).toLocaleDateString('en-US')}) and <span className="font-semibold text-white">will not be charged</span>.
                                 </>
                               ) : (
                                 <>
-                                  Sua assinatura permanecerá ativa até o final do período de cobrança atual.
-                                  Você perderá acesso aos recursos do plano após essa data.
+                                  Your subscription will remain active until the end of the current billing period.
+                                  You will lose access to plan features after that date.
                                 </>
                               )}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel className="bg-transparent border-white/20 text-white hover:bg-white/10">
-                              Manter Assinatura
+                              Keep Subscription
                             </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={handleCancelSubscription}
                               className="bg-red-600 text-white hover:bg-red-700"
                             >
-                              Sim, Cancelar
+                              Yes, Cancel
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -446,10 +446,10 @@ const Subscription = () => {
         {/* Título da seção de planos */}
         <div className="text-center space-y-2">
           <h2 className="text-3xl md:text-4xl font-bold text-white" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-            Escolha seu <span className="text-[#46CCC6]">plano ideal</span>
+            Choose your <span className="text-[#46CCC6]">ideal plan</span>
           </h2>
           <p className="text-white/60 text-lg">
-            Transforme seus dados do Meta Ads em insights acionáveis
+            Transform your Meta Ads data into actionable insights
           </p>
         </div>
 
@@ -460,14 +460,14 @@ const Subscription = () => {
               {plan.popular && !isCurrentPlan(plan.id) && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] text-black px-4 py-1 text-xs font-bold">
-                    MAIS POPULAR
+                    MOST POPULAR
                   </Badge>
                 </div>
               )}
               {isCurrentPlan(plan.id) && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
-                    SEU PLANO ATUAL
+                    YOUR CURRENT PLAN
                   </Badge>
                 </div>
               )}
@@ -502,7 +502,7 @@ const Subscription = () => {
                         <span className="text-white/60">/mês</span>
                       </div>
                       {!isSubscribed && plan.id === 'basic' && (
-                        <p className="text-xs text-white/50 mt-1">após R$47/mês</p>
+                        <p className="text-xs text-white/50 mt-1">then R$47/month</p>
                       )}
                       <p className="text-sm text-[#46CCC6] mt-1">{plan.requestLimit}</p>
                     </div>
@@ -549,14 +549,14 @@ const Subscription = () => {
               {plan.popular && !isCurrentPlan(plan.id) && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-[#46CCC6] to-[#2D9B96] text-black px-4 py-1 text-xs font-bold">
-                    MAIS POPULAR
+                    MOST POPULAR
                   </Badge>
                 </div>
               )}
               {isCurrentPlan(plan.id) && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
                   <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 text-xs font-bold">
-                    SEU PLANO ATUAL
+                    YOUR CURRENT PLAN
                   </Badge>
                 </div>
               )}
@@ -621,7 +621,7 @@ const Subscription = () => {
                       {getButtonText(plan.id)}
                     </Button>
                     {!isSubscribed && plan.id === 'basic' && (
-                      <p className="text-xs text-white/50 text-center mt-2">Após, R$47/mês</p>
+                      <p className="text-xs text-white/50 text-center mt-2">Then, R$47/month</p>
                     )}
                   </CardContent>
                 </Card>
@@ -644,23 +644,23 @@ const Subscription = () => {
                 <Check className="w-8 h-8 text-[#46CCC6]" />
               </div>
               <AlertDialogTitle className="text-white text-2xl text-center">
-                Assinatura Cancelada
+                Subscription Canceled
               </AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-white/80 text-center space-y-4">
               <p className="text-lg">
-                Sua assinatura foi cancelada com sucesso.
+                Your subscription has been successfully canceled.
               </p>
               <div className="bg-[#46CCC6]/10 border border-[#46CCC6]/20 rounded-lg p-4">
                 <p className="text-sm text-white/60 mb-2">
-                  Você continuará com acesso premium até:
+                  You will continue with premium access until:
                 </p>
                 <p className="text-xl font-semibold text-[#46CCC6]">
                   {canceledDate}
                 </p>
               </div>
               <p className="text-sm text-white/60">
-                Após essa data, você perderá acesso aos recursos premium.
+                After that date, you will lose access to premium features.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -669,7 +669,7 @@ const Subscription = () => {
               onClick={() => window.location.reload()}
               className="w-full bg-[#46CCC6] text-black hover:bg-[#46CCC6]/90 font-semibold"
             >
-              Entendi
+              Got it
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

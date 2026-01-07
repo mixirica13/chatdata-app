@@ -59,35 +59,35 @@ const EmailConfirmed = () => {
               <CheckCircle2 className="w-16 h-16 text-green-500" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Email confirmado!</CardTitle>
+          <CardTitle className="text-2xl font-bold">Email confirmed!</CardTitle>
           <CardDescription>
-            Sua conta foi ativada com sucesso
+            Your account has been successfully activated
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-4 rounded-lg">
             <p className="text-sm text-green-900 dark:text-green-100 text-center">
-              Parabéns! Agora você pode fazer login e começar a usar o ChatData.
+              Congratulations! You can now sign in and start using ChatData.
             </p>
           </div>
 
           <div className="space-y-3 bg-accent/50 p-4 rounded-lg">
             <p className="font-medium text-sm flex items-center gap-2">
               <Zap className="w-4 h-4 text-primary" />
-              Próximos passos:
+              Next steps:
             </p>
             <ol className="space-y-2 text-sm text-muted-foreground ml-6">
               <li className="flex gap-2">
                 <span className="font-semibold text-foreground">1.</span>
-                <span>Faça login com suas credenciais</span>
+                <span>Sign in with your credentials</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-semibold text-foreground">2.</span>
-                <span>Conecte sua conta do Meta Ads</span>
+                <span>Connect your Meta Ads account</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-semibold text-foreground">3.</span>
-                <span>Comece a receber insights inteligentes</span>
+                <span>Start receiving smart insights</span>
               </li>
             </ol>
           </div>
@@ -98,10 +98,10 @@ const EmailConfirmed = () => {
               className="w-full"
               size="lg"
             >
-              Ir para Login
+              Go to Login
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Redirecionando automaticamente em {countdown} segundo{countdown !== 1 ? 's' : ''}...
+              Automatically redirecting in {countdown} second{countdown !== 1 ? 's' : ''}...
             </p>
           </div>
         </CardContent>

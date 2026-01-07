@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Assinatura', href: '/subscription', icon: Crown },
-  { name: 'Histórico', href: '/history', icon: History },
-  { name: 'Configurações', href: '/settings', icon: Settings },
+  { name: 'Subscription', href: '/subscription', icon: Crown },
+  { name: 'History', href: '/history', icon: History },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export const Sidebar = () => {

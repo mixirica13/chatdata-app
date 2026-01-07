@@ -40,11 +40,11 @@ export const ConnectionCard = ({
       <CardContent>
         {connected ? (
           <Button variant="outline" onClick={onDisconnect} className="w-full border-white/20 text-white hover:bg-white/10">
-            Desconectar
+            Disconnect
           </Button>
         ) : (
           <Button onClick={onConnect} className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold">
-            Conectar
+            Connect
           </Button>
         )}
       </CardContent>

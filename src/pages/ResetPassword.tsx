@@ -32,7 +32,7 @@ export default function ResetPassword() {
         const hash = window.location.hash;
         if (!hash || !hash.includes('type=recovery')) {
           // If no recovery hash and no session, this is invalid access
-          setFormError("Link inválido ou expirado. Por favor, solicite uma nova redefinição de senha.");
+          setFormError("Invalid or expired link. Please request a new password reset.");
           setTimeout(() => navigate("/login"), 3000);
         }
       }
@@ -82,12 +82,12 @@ export default function ResetPassword() {
     setFormError(null);
 
     if (password !== confirmPassword) {
-      setFormError('As senhas não coincidem');
+      setFormError('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      setFormError('A senha deve ter pelo menos 6 caracteres');
+      setFormError('Password must have at least 6 characters');
       return;
     }
 
@@ -97,7 +97,7 @@ export default function ResetPassword() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        throw new Error("Sessão não encontrada. O link pode ter expirado.");
+        throw new Error("Session not found. The link may have expired.");
       }
 
       // Create a timeout promise
@@ -125,7 +125,7 @@ export default function ResetPassword() {
       setShowSuccess(true);
     } catch (error: any) {
       if (error.message === 'Timeout') {
-        setFormError('A operação demorou muito. Verifique sua conexão e tente novamente.');
+        setFormError('The operation took too long. Check your connection and try again.');
       } else {
         setFormError(translateAuthError(error));
       }
@@ -141,15 +141,15 @@ export default function ResetPassword() {
           <div className="flex justify-center mb-6">
             <Logo className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold text-white">Redefinir senha</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Reset password</CardTitle>
           <CardDescription className="text-white/60">
-            Digite sua nova senha abaixo
+            Enter your new password below
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/80">Nova senha</Label>
+              <Label htmlFor="password" className="text-white/80">New password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -173,7 +173,7 @@ export default function ResetPassword() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white/80">Confirmar nova senha</Label>
+              <Label htmlFor="confirmPassword" className="text-white/80">Confirm new password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -207,10 +207,10 @@ export default function ResetPassword() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Redefinindo...
+                  Resetting...
                 </>
               ) : (
-                "Redefinir senha"
+                "Reset password"
               )}
             </Button>
           </form>
@@ -224,18 +224,18 @@ export default function ResetPassword() {
               <CheckCircle className="h-14 w-14 text-[#46CCC6]" />
             </div>
             <DialogTitle className="text-2xl font-bold text-center mb-2 text-white">
-              Senha alterada com sucesso!
+              Password changed successfully!
             </DialogTitle>
             <DialogDescription className="text-center text-white/60 mb-6">
-              Sua senha foi redefinida com segurança. Faça login novamente com sua nova senha.
+              Your password has been securely reset. Please sign in again with your new password.
               <br />
-              <span className="text-[#46CCC6] font-semibold">Redirecionando em {countdown}s...</span>
+              <span className="text-[#46CCC6] font-semibold">Redirecting in {countdown}s...</span>
             </DialogDescription>
             <Button
               onClick={() => window.location.href = '/login'}
               className="w-full bg-[#46CCC6] hover:bg-[#46CCC6]/90 text-black font-semibold h-12"
             >
-              Ir para Login agora
+              Go to Login now
             </Button>
           </div>
         </DialogContent>
