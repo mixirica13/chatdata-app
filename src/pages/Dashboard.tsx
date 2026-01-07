@@ -98,10 +98,10 @@ const Dashboard = () => {
     try {
       await disconnectMeta();
       setShowDisconnectMetaAlert(false);
-      toast.success('Meta Ads desconectado com sucesso!');
+      toast.success('Meta Ads disconnected successfully!');
     } catch (error) {
       console.error('Error disconnecting Meta:', error);
-      toast.error('Erro ao desconectar Meta Ads. Tente novamente.');
+      toast.error('Error disconnecting Meta Ads. Please try again.');
     }
   };
 
@@ -109,10 +109,10 @@ const Dashboard = () => {
     try {
       await disconnectWhatsapp();
       setShowDisconnectWhatsappAlert(false);
-      toast.success('WhatsApp desconectado com sucesso!');
+      toast.success('WhatsApp disconnected successfully!');
     } catch (error) {
       console.error('Error disconnecting WhatsApp:', error);
-      toast.error('Erro ao desconectar WhatsApp. Tente novamente.');
+      toast.error('Error disconnecting WhatsApp. Please try again.');
     }
   };
 
@@ -120,11 +120,11 @@ const Dashboard = () => {
     try {
       await navigator.clipboard.writeText(mcpServerUrl);
       setMcpUrlCopied(true);
-      toast.success('URL copiada!');
+      toast.success('URL copied!');
       setTimeout(() => setMcpUrlCopied(false), 2000);
     } catch (error) {
       console.error('Error copying URL:', error);
-      toast.error('Erro ao copiar URL');
+      toast.error('Error copying URL');
     }
   };
 
@@ -143,7 +143,7 @@ const Dashboard = () => {
             <LiquidGlass className="p-1">
               <ConnectionCard
                 title="Meta Ads"
-                description="Conecte sua conta de anúncios do Facebook"
+                description="Connect your Facebook Ads account"
                 icon={Facebook}
                 connected={metaConnected}
                 onConnect={() => navigate('/connect/meta')}
@@ -161,8 +161,8 @@ const Dashboard = () => {
                     <Bot className="w-5 h-5 text-[#D97706]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">MCP para Claude</h3>
-                    <p className="text-sm text-gray-400">Conecte o Claude AI aos seus dados</p>
+                    <h3 className="text-lg font-semibold text-white">MCP for Claude</h3>
+                    <p className="text-sm text-gray-400">Connect Claude AI to your data</p>
                   </div>
                 </div>
               </div>
@@ -171,7 +171,7 @@ const Dashboard = () => {
                   onClick={() => setShowMcpInstructions(true)}
                   className="w-full bg-[#D97706] hover:bg-[#D97706]/90 text-white font-semibold"
                 >
-                  Conectar
+                  Connect
                 </Button>
               </div>
             </div>
@@ -334,21 +334,21 @@ const Dashboard = () => {
         <AlertDialogContent className="bg-black border-2 border-red-500/30 max-w-md rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold text-white text-center">
-              Desconectar Meta Ads?
+              Disconnect Meta Ads?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400 text-center pt-2">
-              Isso irá remover todas as suas credenciais e dados de conexão com o Meta Ads. Você precisará conectar novamente para acessar suas métricas.
+              This will remove all your credentials and connection data with Meta Ads. You'll need to connect again to access your metrics.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-2">
             <AlertDialogCancel className="bg-white/5 text-white border-white/10 hover:bg-white/10">
-              Cancelar
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-500 text-white hover:bg-red-600 font-semibold"
               onClick={handleDisconnectMeta}
             >
-              Desconectar
+              Disconnect
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -359,21 +359,21 @@ const Dashboard = () => {
         <AlertDialogContent className="bg-black border-2 border-red-500/30 max-w-md rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-2xl font-bold text-white text-center">
-              Desconectar WhatsApp?
+              Disconnect WhatsApp?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400 text-center pt-2">
-              Isso irá remover sua autenticação do WhatsApp. Você precisará autenticar novamente para usar o Agente de IA.
+              This will remove your WhatsApp authentication. You'll need to authenticate again to use the AI Agent.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-2">
             <AlertDialogCancel className="bg-white/5 text-white border-white/10 hover:bg-white/10">
-              Cancelar
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-500 text-white hover:bg-red-600 font-semibold"
               onClick={handleDisconnectWhatsapp}
             >
-              Desconectar
+              Disconnect
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -392,17 +392,17 @@ const Dashboard = () => {
         <AlertDialogContent className="bg-black border-2 border-[#D97706]/30 max-w-[calc(100vw-2rem)] sm:max-w-md rounded-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <AlertDialogHeader className="flex-shrink-0">
             <AlertDialogTitle className="text-xl font-bold text-white text-center">
-              Conectar ao Claude
+              Connect to Claude
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-400 text-center pt-1 text-sm">
-              Siga os passos abaixo para conectar seus dados ao Claude AI
+              Follow the steps below to connect your data to Claude AI
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-3 py-3 overflow-y-auto flex-1 min-h-0">
             {/* URL do MCP com botão de copiar */}
             <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-              <p className="text-xs text-gray-400 mb-2">URL do Servidor MCP:</p>
+              <p className="text-xs text-gray-400 mb-2">MCP Server URL:</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0 bg-black/50 rounded-lg p-2 overflow-hidden">
                   <code className="text-[#D97706] text-xs block truncate">
@@ -432,7 +432,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm">
-                    Acesse os conectores do Claude
+                    Access Claude connectors
                   </p>
                   <a
                     href="https://claude.ai/settings/connectors"
@@ -451,7 +451,7 @@ const Dashboard = () => {
                   2
                 </div>
                 <p className="text-white text-sm">
-                  Clique em <span className="text-[#D97706] font-medium">"Adicionar conector"</span>
+                  Click on <span className="text-[#D97706] font-medium">"Add connector"</span>
                 </p>
               </div>
 
@@ -460,7 +460,7 @@ const Dashboard = () => {
                   3
                 </div>
                 <p className="text-white text-sm">
-                  Cole a URL e clique em <span className="text-[#D97706] font-medium">"Adicionar"</span>
+                  Paste the URL and click <span className="text-[#D97706] font-medium">"Add"</span>
                 </p>
               </div>
 
@@ -469,7 +469,7 @@ const Dashboard = () => {
                   4
                 </div>
                 <p className="text-white text-sm">
-                  Clique em <span className="text-[#D97706] font-medium">"Veicular"</span> para autenticar
+                  Click on <span className="text-[#D97706] font-medium">"Publish"</span> to authenticate
                 </p>
               </div>
             </div>
@@ -477,14 +477,14 @@ const Dashboard = () => {
             {/* Nota */}
             <div className="bg-[#D97706]/10 rounded-lg p-2 border border-[#D97706]/20">
               <p className="text-xs text-[#D97706]">
-                Após conectar, use o Claude para analisar seus dados do Meta Ads.
+                After connecting, use Claude to analyze your Meta Ads data.
               </p>
             </div>
           </div>
 
           <AlertDialogFooter className="flex-shrink-0 gap-2 sm:gap-2 pt-2">
             <AlertDialogCancel className="bg-white/5 text-white border-white/10 hover:bg-white/10">
-              Fechar
+              Close
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-[#D97706] text-white hover:bg-[#D97706]/90 font-semibold"
@@ -493,7 +493,7 @@ const Dashboard = () => {
               }}
             >
               <ExternalLink className="h-4 w-4 mr-2" />
-              Abrir Claude
+              Open Claude
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
