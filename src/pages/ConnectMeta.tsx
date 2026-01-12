@@ -59,8 +59,9 @@ const ConnectMeta = () => {
           },
         });
 
+        clearTimeout(safetyTimeout);
+
         if (exchangeError) {
-          clearTimeout(safetyTimeout);
           console.error('Token exchange error:', exchangeError);
           hasProcessedToken.current = false; // Allow retry
 
@@ -75,7 +76,17 @@ const ConnectMeta = () => {
           return;
         }
 
-        clearTimeout(safetyTimeout);
+        console.log('Token exchange successful, refreshing profile...');
+
+        // Refresh profile BEFORE navigating to ensure state is updated
+        try {
+          await refreshProfile();
+          if (onboardingStep === 1) {
+            await updateOnboardingStep(2);
+          }
+        } catch (e) {
+          console.error('Profile refresh error:', e);
+        }
 
         // Track successful connection
         const permissions = authResponse.grantedScopes?.split(',') || [];
@@ -85,21 +96,10 @@ const ConnectMeta = () => {
         });
 
         toast.success('Meta Ads connected successfully!');
+        setIsSaving(false);
 
-        // Navigate immediately using window.location for iOS Safari compatibility
-        window.location.href = '/dashboard';
-
-        // Fire-and-forget: refresh profile in background (don't await)
-        Promise.resolve().then(async () => {
-          try {
-            await refreshProfile();
-            if (onboardingStep === 1) {
-              await updateOnboardingStep(2);
-            }
-          } catch (e) {
-            console.error('Background profile refresh error:', e);
-          }
-        });
+        // Navigate using React Router to preserve state
+        navigate('/dashboard');
       } catch (error) {
         clearTimeout(safetyTimeout);
         console.error('Error saving connection:', error);
@@ -117,7 +117,7 @@ const ConnectMeta = () => {
     };
 
     saveConnection();
-  }, [authResponse, user, trackEvent, refreshProfile, onboardingStep, updateOnboardingStep]);
+  }, [authResponse, user, trackEvent, refreshProfile, onboardingStep, updateOnboardingStep, navigate]);
 
   const handleConnect = async () => {
     try {
