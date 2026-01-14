@@ -31,6 +31,8 @@ const LandingPageMCP = lazy(() => import("./pages/LandingPageMCP"));
 const LandingPageV4 = lazy(() => import("./pages/LandingPageV4"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 const DataDeletion = lazy(() => import("./pages/DataDeletion"));
 const McpAuth = lazy(() => import("./pages/McpAuth"));
 
@@ -91,6 +93,8 @@ const App = () => {
               <Route path="/mcp" element={<LandingPageMCP />} />
               <Route path="/termos" element={<TermsOfService />} />
               <Route path="/privacidade" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route path="/exclusao-dados" element={<DataDeletion />} />
               <Route path="/login" element={<Login />} />
               {/* Redirecionar rotas antigas para /login (passwordless) */}

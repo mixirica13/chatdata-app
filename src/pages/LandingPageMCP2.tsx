@@ -478,7 +478,7 @@ const FooterSection = () => {
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link to="/data-deletion" className="hover:text-foreground transition-colors">Data Deletion</Link>
+            <Link to="/exclusao-dados" className="hover:text-foreground transition-colors">Data Deletion</Link>
           </div>
 
           <div className="text-sm text-muted-foreground">
